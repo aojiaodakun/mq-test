@@ -44,7 +44,7 @@ public class KafkaDelayProducerMain {
             String value = "value-delay" + i;
             ProducerRecord<String, String> record = new ProducerRecord<>(topic, value);
             // 延迟消息
-            int seconds = 8;
+            int seconds = 7;
             long startDeliverTime = 0;
             MetaTime metaTime = DelayControlManager.selectMaxMetaTime(seconds);
             if (metaTime != MetaTime.delay_1s) {
