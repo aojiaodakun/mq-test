@@ -42,22 +42,24 @@ public class KafkaDelayProducerMain {
 
         for (int i = 0; i < 1; i++) {
             String value = "value-delay" + i;
+            ProducerRecord<String, String> record = new ProducerRecord<>(topic, value);
             // 延迟消息
-            int seconds = 39;
-            long startDeliverTime = DelayControlManager.getStartDeliverTime(seconds);
+            int seconds = 8;
+            long startDeliverTime = 0;
             MetaTime metaTime = DelayControlManager.selectMaxMetaTime(seconds);
-            String delayTopicName = KafkaDelayManager.getDelayTopicName(metaTime.getName());
-
-            ProducerRecord<String, String> record = new ProducerRecord<>(delayTopicName, value);
-            // 目标topic
-            record.headers().add(KafkaDelayConstants.TARGET_TOPIC, topic.getBytes());
-            // 开始投递时间
-            record.headers().add(KafkaDelayConstants.START_DELIVER_TIME, longToBytes(startDeliverTime));
-
+            if (metaTime != MetaTime.delay_1s) {
+                String delayTopicName = KafkaDelayManager.getDelayTopicName(metaTime.getName());
+                record = new ProducerRecord<>(delayTopicName, value);
+                // 目标topic
+                record.headers().add(KafkaDelayConstants.TARGET_TOPIC, topic.getBytes());
+                // 开始投递时间
+                startDeliverTime = DelayControlManager.getStartDeliverTime(seconds);
+                record.headers().add(KafkaDelayConstants.START_DELIVER_TIME, longToBytes(startDeliverTime));
+            }
             // 同步发送
             Future<RecordMetadata> future = producer.send(record);
             RecordMetadata recordMetadata = future.get();
-            System.err.println("sendCurrTime:" + startDeliverTime + ",currTime:" + System.currentTimeMillis() + ",topic:" + record.topic() + ",value:" + record.value()
+            System.err.println("startDeliverTime:" + startDeliverTime + ",currTime:" + System.currentTimeMillis() + ",topic:" + record.topic() + ",value:" + record.value()
                     + ",partition:" + recordMetadata.partition() + ",offset:" + recordMetadata.offset());
         }
         producer.close();
