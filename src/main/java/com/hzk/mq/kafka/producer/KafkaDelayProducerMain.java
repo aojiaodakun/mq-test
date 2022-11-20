@@ -1,10 +1,11 @@
 package com.hzk.mq.kafka.producer;
 
 import com.hzk.mq.kafka.config.KafkaConfig;
-import com.hzk.mq.kafka.delay.KafkaDelayConstants;
+import com.hzk.mq.kafka.constant.KafkaConstants;
 import com.hzk.mq.kafka.delay.KafkaDelayManager;
 import com.hzk.mq.support.delay.DelayControlManager;
 import com.hzk.mq.support.delay.MetaTime;
+import com.hzk.mq.support.util.ClassCastUtil;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -51,10 +52,10 @@ public class KafkaDelayProducerMain {
                 String delayTopicName = KafkaDelayManager.getDelayTopicName(metaTime.getName());
                 record = new ProducerRecord<>(delayTopicName, value);
                 // 目标topic
-                record.headers().add(KafkaDelayConstants.TARGET_TOPIC, topic.getBytes());
+                record.headers().add(KafkaConstants.DelayConstants.TARGET_TOPIC, topic.getBytes());
                 // 开始投递时间
                 startDeliverTime = DelayControlManager.getStartDeliverTime(seconds);
-                record.headers().add(KafkaDelayConstants.START_DELIVER_TIME, longToBytes(startDeliverTime));
+                record.headers().add(KafkaConstants.DelayConstants.START_DELIVER_TIME, ClassCastUtil.longToBytes(startDeliverTime));
             }
             // 同步发送
             Future<RecordMetadata> future = producer.send(record);
@@ -65,9 +66,7 @@ public class KafkaDelayProducerMain {
         producer.close();
     }
 
-    private static byte[] longToBytes(long longVar) {
-        return ByteBuffer.allocate(Long.SIZE / Byte.SIZE).putLong(longVar).array();
-    }
+
 
 
 

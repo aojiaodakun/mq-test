@@ -34,6 +34,19 @@ public class DelayControlManager {
         return 0L;
     }
 
+    /**
+     * 获取真实topic投递时间点
+     * @param level 延迟等级
+     * @return 真实topic投递时间点
+     */
+    public static long getStartDeliverTimeByLevel(int level) {
+        MetaTime metaTime = MetaTime.genInstanceByLevel(level);
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MILLISECOND, metaTime.getMillis());
+        return calendar.getTime().getTime();
+    }
+
+
     private static void validateTime(int seconds) {
         int maxDelayTime = Integer.getInteger(SUPPORT_MAX_SECOND, 7200);
 

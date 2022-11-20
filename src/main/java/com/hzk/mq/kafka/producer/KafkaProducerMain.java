@@ -33,7 +33,7 @@ public class KafkaProducerMain {
 
     public static void main(String[] args) throws Exception{
         Properties properties = KafkaConfig.getProducerConfig();
-        String topic = "test1";
+        String topic = "retry_test";
 
         KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
         // 发送前检测生产者

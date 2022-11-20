@@ -16,8 +16,8 @@ public class ActiveMQTopicConsumerMain {
         Connection connection = activeMQConnectionFactory.createConnection();
         connection.start();
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        Topic queue = session.createTopic(ActiveMQConstants.TOPIC_NAME);
-        MessageConsumer messageConsumer = session.createConsumer(queue);
+        Topic topic = session.createTopic(ActiveMQConstants.TOPIC_NAME);
+        MessageConsumer messageConsumer = session.createConsumer(topic);
         while(true){
             // reveive() 一直等待接收消息，在能够接收到消息之前将一直阻塞。 是同步阻塞方式 。和socket的accept方法类似的。
             // reveive(Long time) : 等待n毫秒之后还没有收到消息，就是结束阻塞。

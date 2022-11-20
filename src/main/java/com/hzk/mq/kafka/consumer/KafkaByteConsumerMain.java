@@ -29,10 +29,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class KafkaByteConsumerMain {
 
-    private static String CONSUMER_RESULT_SUCCESS = "success";
-
-    private static String CONSUMER_RESULT_LATER = "later";
-
     public KafkaByteConsumerMain(){
 
     }

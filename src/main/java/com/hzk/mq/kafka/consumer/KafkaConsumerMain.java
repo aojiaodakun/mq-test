@@ -32,13 +32,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class KafkaConsumerMain {
 
-    private static String CONSUMER_RESULT_SUCCESS = "success";
-
-    private static String CONSUMER_RESULT_LATER = "later";
-
-    public KafkaConsumerMain(){
-
-    }
 
     static {
         // 本地
@@ -62,7 +55,8 @@ public class KafkaConsumerMain {
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
 
         // 订阅topic=test
-        String topic = "delay_test";
+//        String topic = "delay_test";
+        String topic = "retry_test";
         // 注册内存队列
 //        PartitionOffsetManager.registQueue(topic, groupName);
         /**

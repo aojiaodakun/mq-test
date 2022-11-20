@@ -4,10 +4,13 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import com.hzk.mq.kafka.common.KafkaConsumerWorkerPool;
+import com.hzk.mq.kafka.common.KafkaDispatchProducer;
 import com.hzk.mq.kafka.config.KafkaConfig;
+import com.hzk.mq.kafka.constant.KafkaConstants;
 import com.hzk.mq.kafka.util.KafkaAdminUtil;
 import com.hzk.mq.support.delay.DelayControlManager;
 import com.hzk.mq.support.delay.MetaTime;
+import com.hzk.mq.support.util.ClassCastUtil;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -53,8 +56,6 @@ public class KafkaDelayManager {
 
     private static Map<String, KafkaDelayConsumer> DELAY_CONSUMER_MAP = new HashMap<>(32);
 
-    private static KafkaProducer<String, String> DISPATCH_PRODUCER;
-
 
     private static void initDelayEnv(){
         // 1、获取17个延迟等级的topicName集合
@@ -68,7 +69,8 @@ public class KafkaDelayManager {
         for(int i = 0; i < delayTopicList.size(); i++) {
             String delayTopic = delayTopicList.get(i);
             MetaTime metaTime = MetaTime.genInstanceByLevel(i+1);
-            KafkaDelayConsumer kafkaDelayConsumer = new KafkaDelayConsumer(System.getProperty("bootstrap.servers"), delayTopic, metaTime, countDownLatch);
+            KafkaDelayConsumer kafkaDelayConsumer = new KafkaDelayConsumer(System.getProperty("bootstrap.servers"), delayTopic,
+                    metaTime, countDownLatch);
             DELAY_CONSUMER_MAP.put(delayTopic, kafkaDelayConsumer);
             new Thread(()->{
                 kafkaDelayConsumer.start();
@@ -80,9 +82,7 @@ public class KafkaDelayManager {
             e.printStackTrace();
         }
         System.err.println("所有延迟消费者启动成功");
-        // 4、启动转发生产者
-        Properties properties = KafkaConfig.getProducerConfig();
-        DISPATCH_PRODUCER = new KafkaProducer<>(properties);
+
     }
 
     /**
@@ -91,7 +91,7 @@ public class KafkaDelayManager {
      * @return Future对象
      */
     public static Future<RecordMetadata> dispatchMessage(ProducerRecord<String, String> messageRecord){
-        return DISPATCH_PRODUCER.send(messageRecord);
+        return KafkaDispatchProducer.send(messageRecord);
     }
 
     /**
@@ -165,15 +165,18 @@ class KafkaDelayConsumer {
                     // 开始投递时间点
                     byte[] startDeliverTimeByteArray = null;
                     long startDeliverTime = 0L;
+                    byte[] retryNumsBytes = null;
                     Header[] headers = record.headers().toArray();
                     if (headers != null && headers.length > 0) {
                         for (Header header : headers) {
                             String key = header.key();
-                            if (key.equals(KafkaDelayConstants.TARGET_TOPIC)) {
+                            if (key.equals(KafkaConstants.DelayConstants.TARGET_TOPIC)) {
                                 targetTopic = new String(header.value());
-                            } else if(key.equals(KafkaDelayConstants.START_DELIVER_TIME)){
+                            } else if(key.equals(KafkaConstants.DelayConstants.START_DELIVER_TIME)){
                                 startDeliverTimeByteArray = header.value();
-                                startDeliverTime = byteArrayToLong(startDeliverTimeByteArray);
+                                startDeliverTime = ClassCastUtil.byteArrayToLong(startDeliverTimeByteArray);
+                            } else if(key.equals(KafkaConstants.RetryConstants.RETRY_NUMBERS)){
+                                retryNumsBytes = header.value();
                             }
                         }
                     }
@@ -199,19 +202,9 @@ class KafkaDelayConsumer {
                         }
                         String delayTopicName = KafkaDelayManager.getDelayTopicName(metaTime.getName());
                         nextTopic = delayTopicName;
-                        ProducerRecord<String, String> nextRecord = new ProducerRecord<>(nextTopic, record.value());
-                        // 目标topic
-                        nextRecord.headers().add(KafkaDelayConstants.TARGET_TOPIC, targetTopic.getBytes());
-                        // 开始投递时间
-                        nextRecord.headers().add(KafkaDelayConstants.START_DELIVER_TIME, startDeliverTimeByteArray);
-                        KafkaDelayManager.dispatchMessage(nextRecord).get();
+                        dispatchMessage(targetTopic, record.value(), nextTopic, startDeliverTimeByteArray, retryNumsBytes);
                     } else if(unitSeconds == 1){
-                        ProducerRecord<String, String> nextRecord = new ProducerRecord<>(targetTopic, record.value());
-                        // 目标topic
-                        nextRecord.headers().add(KafkaDelayConstants.TARGET_TOPIC, targetTopic.getBytes());
-                        // 开始投递时间
-                        nextRecord.headers().add(KafkaDelayConstants.START_DELIVER_TIME, startDeliverTimeByteArray);
-                        KafkaDelayManager.dispatchMessage(nextRecord).get();
+                        dispatchMessage(targetTopic, record.value(), targetTopic, startDeliverTimeByteArray, retryNumsBytes);
                     }
                     // Map<分区，偏移量>
                     Map<TopicPartition, OffsetAndMetadata> partitionOffSetMap = new HashMap<>();
@@ -225,15 +218,22 @@ class KafkaDelayConsumer {
         }
     }
 
+    private void dispatchMessage(String targetTopic, String value, String nextTopic, byte[] startDeliverTimeByteArray, byte[] retryNumsBytes)
+            throws InterruptedException, java.util.concurrent.ExecutionException {
+        ProducerRecord<String, String> nextRecord = new ProducerRecord<>(nextTopic, value);
+        // 目标topic
+        nextRecord.headers().add(KafkaConstants.DelayConstants.TARGET_TOPIC, targetTopic.getBytes());
+        // 开始投递时间
+        nextRecord.headers().add(KafkaConstants.DelayConstants.START_DELIVER_TIME, startDeliverTimeByteArray);
+        // 消费重试次数
+        nextRecord.headers().add(KafkaConstants.RetryConstants.RETRY_NUMBERS, retryNumsBytes);
+        KafkaDelayManager.dispatchMessage(nextRecord).get();
+    }
+
     public void stop(){
         isRunning = false;
     }
 
-    private static long byteArrayToLong(byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.allocate(8);
-        buffer.put(bytes, 0, bytes.length);
-        buffer.flip();
-        return buffer.getLong();
-    }
+
 
 }
