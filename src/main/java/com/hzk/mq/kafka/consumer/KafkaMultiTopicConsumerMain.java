@@ -1,8 +1,12 @@
 package com.hzk.mq.kafka.consumer;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import com.hzk.mq.kafka.common.KafkaConsumerWorkerPool;
 import com.hzk.mq.kafka.config.KafkaConfig;
-import com.hzk.mq.kafka.manager.KafkaPartitionOffsetManager;
+import com.hzk.mq.kafka.constant.KafkaConstants;
+import com.hzk.mq.kafka.offset.KafkaPartitionOffsetManager;
 import com.hzk.mq.kafka.util.KafkaAdminUtil;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -10,6 +14,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -29,11 +34,16 @@ public class KafkaMultiTopicConsumerMain {
 
     static {
         // 本地
-        System.setProperty("bootstrap.servers", "localhost:9092,localhost:9093,localhost:9094");
+        System.setProperty("bootstrap.servers", "localhost:9092");
+//        System.setProperty("bootstrap.servers", "localhost:9092,localhost:9093,localhost:9094");
         // 虚机
 //        System.setProperty("bootstrap.servers", "172.20.158.201:9092,172.20.158.201:9093,172.20.158.201:9094");
 
         System.setProperty("kafka.consumer.safe.enable", "true");
+
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        Logger root = loggerContext.getLogger("root");
+        root.setLevel(Level.INFO);
     }
 
     public static void main(String[] args) throws Exception{
@@ -49,17 +59,17 @@ public class KafkaMultiTopicConsumerMain {
         String topic2 = "test2";
         Map<String, Integer> topic2concurrencyMap = new HashMap<>();
         topic2concurrencyMap.put(topic, 2);
-        topic2concurrencyMap.put(topic, 3);
+        topic2concurrencyMap.put(topic2, 4);
 
         List<String> topicList = new ArrayList<>();
         topicList.add(topic);
-        topicList.add(topic2);
+//        topicList.add(topic2);
 
         for (String tempTopic : topicList) {
             /**
              * 1、消费者订阅前，先创建partition=4的topic
              */
-            boolean isCreateTopic = createTopic(topic);
+            boolean isCreateTopic = KafkaAdminUtil.createTopic(topic, 4, (short) 1);
             if (!isCreateTopic) {
                 System.err.println("createTopic error,topic=" + topic);
                 return;
@@ -68,7 +78,9 @@ public class KafkaMultiTopicConsumerMain {
             KafkaPartitionOffsetManager.registQueue(tempTopic, groupName);
         }
         // 订阅会修改线程id
+//        consumer.subscribe(Collections.singleton(topic));
         consumer.subscribe(topicList);
+
         ReentrantLock lock = new ReentrantLock();
         // 创建拉取线程
         new PollMessageToDispatchThread(topic2concurrencyMap, consumer, groupName, lock).start();
@@ -89,29 +101,6 @@ public class KafkaMultiTopicConsumerMain {
             }
         }
 
-    }
-
-    /**
-     * 创建topic
-     * @param topic topic
-     * @return 布尔值
-     */
-    private static boolean createTopic(String topic){
-        int createTopicLimit = 3;
-        int createTopicTime = 0;
-        while (createTopicTime < createTopicLimit) {
-            /**
-             * TODO，副本数要考虑集群节点
-             * 1、节点数大于1，副本=2
-             * 2、节点数=1，副本=1
-             */
-            boolean isCreateTopic = KafkaAdminUtil.createTopic(topic, 4, (short) 1);
-            if (isCreateTopic) {
-                return true;
-            }
-            createTopicTime++;
-        }
-        return false;
     }
 
     public static boolean isSafeConsumer(){
@@ -172,7 +161,7 @@ class PollMessageToDispatchThread extends Thread {
 
             int count = consumerRecords.count();
             System.err.println("拉取批次:" + count);
-            int maxRetryTime = Integer.parseInt(System.getProperty("kafka.consumer.retry.time", "10"));
+            int maxRetryTime = Integer.parseInt(System.getProperty(KafkaConstants.RetryConstants.MQ_KAFKA_CONSUMER_RETRY_TIMES, "10"));
 
             for (ConsumerRecord<String, String> record:consumerRecords) {
                 int partition = record.partition();

@@ -3,7 +3,6 @@ package com.hzk.mq.kafka.consumer;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-import com.hzk.mq.kafka.common.KafkaConsumerWorkerPool;
 import com.hzk.mq.kafka.common.KafkaDispatchProducer;
 import com.hzk.mq.kafka.config.KafkaConfig;
 import com.hzk.mq.kafka.constant.KafkaConstants;
@@ -18,14 +17,16 @@ import org.apache.kafka.common.header.Header;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 /**
  * kafka消费重试
+ * 基于延迟消息实现
+ * 1、启动KafkaDelayManager
+ * 2、启动KafkaRetryConsumerMain
+ * 3、启动KafkaRetryProducerMain
  */
 public class KafkaRetryConsumerMain {
 
@@ -34,39 +35,34 @@ public class KafkaRetryConsumerMain {
     private static String CONSUMER_RESULT_LATER = "later";
 
     static {
-        // 本地
-        System.setProperty("bootstrap.servers", "localhost:9092");
-//        System.setProperty("bootstrap.servers", "localhost:9092,localhost:9093,localhost:9094");
-        // 虚机
-//        System.setProperty("bootstrap.servers", "172.20.158.201:9092,172.20.158.201:9093,172.20.158.201:9094");
-
-        // 最大消费重试次数
-        System.setProperty(KafkaConstants.RetryConstants.CONSUMER_MAX_RETRY_NUMBERS, "3");
-
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
         Logger root = loggerContext.getLogger("root");
         root.setLevel(Level.INFO);
     }
 
     public static void main(String[] args) throws Exception{
+        // 本地
+        System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
+        // 最大消费重试次数
+        System.setProperty(KafkaConstants.RetryConstants.MQ_KAFKA_CONSUMER_RETRY_TIMES, "3");
+        String topic = "retry_test";
+
         Properties properties = KafkaConfig.getConsumerConfig();
         // 消费者组
         String groupName = "default_consumer_group";
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, groupName);
-
-
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
-        // 订阅topic=test
-        String topic = "retry_test";
         String retryTopic = MQRetryManager.getRetryTopic(groupName);
 
+        // 创建topic
         KafkaAdminUtil.createTopic(topic, 4, (short) 1);
         KafkaAdminUtil.createTopic(retryTopic, 4, (short) 1);
-
+        // 订阅源topic，重试topic
         consumer.subscribe(Arrays.asList(topic, retryTopic));
 
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         // 最大消费重试次数
-        int maxRetryNums = getConsumerMaxRetryNums();
+        int maxRetryNums = getConsumerMaxRetryTimes();
         while (true) {
             ConsumerRecords<String, String> consumerRecords = consumer.poll(Duration.ofMillis(100));
             if (consumerRecords.isEmpty()) {
@@ -76,44 +72,41 @@ public class KafkaRetryConsumerMain {
             for (ConsumerRecord<String, String> record:consumerRecords) {
                 int partition = record.partition();
                 String value = record.value();
-                System.err.println("receiveCurrTime=" + System.currentTimeMillis() + ",topic:" + record.topic() +
-                        ",partition=" + record.partition() + ",value=" + record.value() + ",offset=" + record.offset());
-
-                // TODO 默认消费失败，转发至延迟队列
-                // 先消费逻辑，再处理消费失败场景
-
 
                 int retryNums = 0;
                 Header[] headers = record.headers().toArray();
                 if (headers != null && headers.length > 0) {
                     for (Header header : headers) {
                         String key = header.key();
-                        if (key.equals(KafkaConstants.RetryConstants.RETRY_NUMBERS)) {
+                        if (key.equals(KafkaConstants.RetryConstants.RETRY_TIMES)) {
                             retryNums = ClassCastUtil.bytes2Int(header.value());
                         }
                     }
                 }
-                System.err.println("重试次数:" + retryNums);
-                if (retryNums == 0) {
-                    // 第一次消费失败
-                    retryNums = 1;
-                    dispatchToRetryTopic(retryTopic, value, retryNums);
+                // 第n次消费失败
+                System.err.println("重试次数=" + retryNums + ",receiveCurrTime=" + df.format(new Date()) + ",topic=" + record.topic() +
+                        ",partition=" + record.partition() + ",offset=" + record.offset() + ",value=" + record.value());
+
+                // 默认消费失败,转发至延迟队列
+                // 先消费逻辑,再处理消费失败场景
+                // doBizWorkFirst,无此方法，仅代表先走业务代码
+                System.err.println("doBizWorkFirst...");
+
+
+
+                retryNums = retryNums + 1;
+                if (retryNums > maxRetryNums) {
+                    // 超过最大重试次数，丢弃该消息
+                    System.err.println("重试次数=" + retryNums + ",receiveCurrTime=" + df.format(new Date()) + ",大于最大重试次数" + maxRetryNums + ",丢弃消息,value=" + record.value());
                 } else {
-                    if (retryNums > maxRetryNums) {
-                        // 超过最大重试次数，丢弃该消息
-                        System.err.println("丢弃消息...");
-                        continue;
-                    } else {
-                        // 第n次消费失败
-                        retryNums = retryNums + 1;
-                        dispatchToRetryTopic(retryTopic, value, retryNums);
-                    }
+                    dispatchToRetryTopic(retryTopic, value, retryNums);
                 }
                 // Map<分区，偏移量>
                 Map<TopicPartition, OffsetAndMetadata> partitionOffSetMap = new HashMap<>();
-                partitionOffSetMap.put(new TopicPartition(topic, partition), new OffsetAndMetadata(record.offset() + 1));
+                partitionOffSetMap.put(new TopicPartition(record.topic(), partition), new OffsetAndMetadata(record.offset() + 1));
                 consumer.commitSync(partitionOffSetMap);
                 System.err.println("提交偏移量:" + partitionOffSetMap);
+                System.err.println("-----------------------------------");
             }
         }
 
@@ -126,12 +119,12 @@ public class KafkaRetryConsumerMain {
         delayRecord.headers().add(KafkaConstants.DelayConstants.TARGET_TOPIC, retryTopic.getBytes(StandardCharsets.UTF_8));
         long startDeliverTime = DelayControlManager.getStartDeliverTimeByLevel(retryNums + 2);
         delayRecord.headers().add(KafkaConstants.DelayConstants.START_DELIVER_TIME, ClassCastUtil.longToBytes(startDeliverTime));
-        delayRecord.headers().add(KafkaConstants.RetryConstants.RETRY_NUMBERS, ClassCastUtil.int2bytes(retryNums));
+        delayRecord.headers().add(KafkaConstants.RetryConstants.RETRY_TIMES, ClassCastUtil.int2bytes(retryNums));
         KafkaDispatchProducer.send(delayRecord).get();
     }
 
-    private static int getConsumerMaxRetryNums(){
-        return Integer.getInteger(KafkaConstants.RetryConstants.CONSUMER_MAX_RETRY_NUMBERS);
+    private static int getConsumerMaxRetryTimes(){
+        return Integer.getInteger(KafkaConstants.RetryConstants.MQ_KAFKA_CONSUMER_RETRY_TIMES);
     }
 
 

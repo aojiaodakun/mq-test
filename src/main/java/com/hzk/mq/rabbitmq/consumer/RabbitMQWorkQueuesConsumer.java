@@ -5,6 +5,9 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.GetResponse;
+import com.rabbitmq.client.impl.AMQConnection;
+
+import java.util.Map;
 
 /**
  * Work Queues(工作队列模式)，一个生产者，多个消费者，一条消息只能被一个消费者消费
@@ -15,6 +18,9 @@ public class RabbitMQWorkQueuesConsumer {
 
     public static void main(String[] args) throws Exception {
         Connection connection = RabbitMQFactory.getConnection();
+        Map<String, Object> clientProperties = connection.getClientProperties();
+
+
         Channel channel = connection.createChannel();
         channel.queueDeclare(QUEUE_NAME, true, false, false, null);
         //模拟三个消费者,rabbitmq默认会把消息轮询推给每个消费者

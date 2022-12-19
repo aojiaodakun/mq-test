@@ -1,6 +1,6 @@
-package com.hzk.mq.kafka.manager;
+package com.hzk.mq.kafka.offset;
 
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import com.hzk.mq.kafka.constant.KafkaConstants;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 
@@ -15,7 +15,7 @@ public class KafkaPartitionOffsetManager {
 
     public static void registQueue(String topic, String groupName){
         String key = getKey(topic, groupName);
-        int capacity = Integer.parseInt(System.getProperty("kafka.consumer.offset.queue.capacity", "1000"));
+        int capacity = Integer.parseInt(System.getProperty(KafkaConstants.MQ_KAFKA_CONSUMER_OFFSET_QUEUE_SIZE, "1000"));
         TOPICGROUP_OFFSET_MAP.put(key, new ArrayBlockingQueue<>(capacity));
     }
 

@@ -1,14 +1,16 @@
 package com.hzk.mq.kafka.util;
 
-import org.apache.kafka.clients.CommonClientConfigs;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import com.hzk.mq.kafka.config.KafkaConfig;
+import com.hzk.mq.kafka.constant.KafkaConstants;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.admin.TopicDescription;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.KafkaFuture;
-import org.apache.kafka.common.config.SaslConfigs;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Map;
@@ -22,32 +24,28 @@ public class KafkaAdminUtil {
 
     private static AdminClient ADMIN_CLIENT;
 
+    private static final Object LOCKER = new Object();
+
     static {
-
-        // 本地
-//        System.setProperty("bootstrap.servers", "localhost:9092,localhost:9093,localhost:9094");
-        // 虚机
-//        System.setProperty("bootstrap.servers", "172.20.158.201:9092,172.20.158.201:9093,172.20.158.201:9094");
-
-
-        Properties properties = new Properties();
-        properties.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, System.getProperty("bootstrap.servers"));
-        properties.setProperty(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, "30000");
-//        properties.setProperty(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, "4000");
-
-
-
-
-        // 认证
-//        properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
-//        properties.put(SaslConfigs.SASL_MECHANISM, "PLAIN");
-//        properties.put(SaslConfigs.SASL_JAAS_CONFIG, "org.apache.kafka.common.security.scram.ScramLoginModule required username='admin' password='admin-secret';");
-        ADMIN_CLIENT = AdminClient.create(properties);
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        Logger root = loggerContext.getLogger("root");
+        root.setLevel(Level.INFO);
     }
 
     private KafkaAdminUtil(){
 
     }
+
+    private static void initAdminClient(){
+        if (ADMIN_CLIENT == null) {
+            synchronized (LOCKER) {
+                if (ADMIN_CLIENT == null) {
+                    ADMIN_CLIENT = AdminClient.create(KafkaConfig.getAdminConfig());
+                }
+            }
+        }
+    }
+
 
     /**
      * 创建topic
@@ -57,6 +55,7 @@ public class KafkaAdminUtil {
      * @return
      */
     public static boolean createTopic(String topicName, int numPartitions, short replicationFactor){
+        initAdminClient();
         if (isTopicExist(topicName)) {
             return true;
         }
@@ -93,13 +92,18 @@ public class KafkaAdminUtil {
         }
     }
 
+    public static void stop(){
+        ADMIN_CLIENT.close();
+        ADMIN_CLIENT = null;
+    }
 
-    public static void main(String[] args) {
+
+    public static void main(String[] args) throws Exception{
+        System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
         String topic = "test33";
-        boolean flag = createTopic(topic, 4, (short)2);
+        boolean flag = createTopic(topic, 4, (short)1);
         System.out.println(flag);
-
-
+        stop();
     }
 
 

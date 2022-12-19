@@ -1,5 +1,6 @@
 package com.hzk.mq.support.retry;
 
+import com.hzk.mq.kafka.constant.KafkaConstants;
 import com.hzk.mq.kafka.delay.KafkaDelayManager;
 import com.hzk.mq.support.delay.MetaTime;
 
@@ -11,7 +12,7 @@ public class MQRetryManager {
      * @return 消费者的重试队列名称
      */
     public static String getRetryTopic(String groupName){
-        return MQRetryConstants.RETRY_TOPIC_PREFIX + groupName;
+        return groupName + KafkaConstants.RetryConstants.RETRY_TOPIC_SUFFIX;
     }
 
     /**

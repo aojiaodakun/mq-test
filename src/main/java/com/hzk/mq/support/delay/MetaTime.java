@@ -1,5 +1,8 @@
 package com.hzk.mq.support.delay;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum MetaTime {
 
     //rocket messageDelayLevel
@@ -46,6 +49,29 @@ public enum MetaTime {
     private int level;
     private String name;
 
+    private static Map<Integer, MetaTime> LEVEL_METATIME_MAP = new HashMap<>(32);
+
+    static {
+        LEVEL_METATIME_MAP.put(1, delay_1s);
+        LEVEL_METATIME_MAP.put(2, delay_5s);
+        LEVEL_METATIME_MAP.put(3, delay_10s);
+        LEVEL_METATIME_MAP.put(4, delay_30s);
+        LEVEL_METATIME_MAP.put(5, delay_1m);
+        LEVEL_METATIME_MAP.put(6, delay_2m);
+        LEVEL_METATIME_MAP.put(7, delay_3m);
+        LEVEL_METATIME_MAP.put(8, delay_4m);
+        LEVEL_METATIME_MAP.put(9, delay_5m);
+        LEVEL_METATIME_MAP.put(10, delay_6m);
+        LEVEL_METATIME_MAP.put(11, delay_7m);
+        LEVEL_METATIME_MAP.put(12, delay_8m);
+        LEVEL_METATIME_MAP.put(13, delay_9m);
+        LEVEL_METATIME_MAP.put(14, delay_10m);
+        LEVEL_METATIME_MAP.put(15, delay_20m);
+        LEVEL_METATIME_MAP.put(16, delay_30m);
+        LEVEL_METATIME_MAP.put(17, delay_1h);
+        LEVEL_METATIME_MAP.put(18, delay_2h);
+    }
+
     MetaTime(int millis, int level, String name) {
         this.millis = millis;
         this.level = level;
@@ -65,45 +91,7 @@ public enum MetaTime {
     }
 
     public static MetaTime genInstanceByLevel(int level) {
-        switch (level) {
-            case 1:
-                return delay_1s;
-            case 2:
-                return delay_5s;
-            case 3:
-                return delay_10s;
-            case 4:
-                return delay_30s;
-            case 5:
-                return delay_1m;
-            case 6:
-                return delay_2m;
-            case 7:
-                return delay_3m;
-            case 8:
-                return delay_4m;
-            case 9:
-                return delay_5m;
-            case 10:
-                return delay_6m;
-            case 11:
-                return delay_7m;
-            case 12:
-                return delay_8m;
-            case 13:
-                return delay_9m;
-            case 14:
-                return delay_10m;
-            case 15:
-                return delay_20m;
-            case 16:
-                return delay_30m;
-            case 17:
-                return delay_1h;
-            case 18:
-                return delay_2h;
-        }
-        return null;
+        return LEVEL_METATIME_MAP.get(level);
     }
 
 }

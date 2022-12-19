@@ -1,28 +1,49 @@
 package com.hzk.mq.kafka.producer;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import com.hzk.mq.kafka.config.KafkaConfig;
+import com.hzk.mq.kafka.constant.KafkaConstants;
+import com.hzk.mq.kafka.util.KafkaAdminUtil;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
-public class KafkaByteProducerMain {
+/**
+ * 纯测试，不参与demo
+ */
+public class KafkaProducerTest {
+
+    static {
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        Logger root = loggerContext.getLogger("root");
+        root.setLevel(Level.INFO);
+    }
 
 
     public static void main(String[] args) throws Exception{
+        // 本地
+        System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
+
+
         Properties properties = KafkaConfig.getProducerConfig();
+        properties.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 8);
         String topic = "test1";
+//        String topic = "retry_test";
+        KafkaAdminUtil.createTopic(topic, 4, (short) 1);
 
-        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
-        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
 
-        KafkaProducer<String, byte[]> producer = new KafkaProducer<>(properties);
+        KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
         // 发送前检测生产者
         Method throwIfProducerClosedMethod = producer.getClass().getDeclaredMethod("throwIfProducerClosed");
         throwIfProducerClosedMethod.setAccessible(true);
@@ -37,19 +58,22 @@ public class KafkaByteProducerMain {
         ProducerConfig producerConfig = (ProducerConfig)kafkaConfigField.get(producer);
         System.out.println(producerConfig);
 
-        for (int i = 0; i < 10; i++) {
-            String value = "value11-09-" + i;
-            ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, value.getBytes());
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+
+        for (int i = 0; i < 3; i++) {
+            String value = "value12-19-" + i;
+            ProducerRecord<String, String> record = new ProducerRecord<>(topic, value);
 
             // 添加头部
-            record.headers().add("hzk", "hzk".getBytes());
-
+//            record.headers().add("hzk", "hzk".getBytes());
 
 
             // 同步发送
             Future<RecordMetadata> future = producer.send(record);
             RecordMetadata recordMetadata = future.get();
-            System.out.println("key:" + record.key() + ",value:" + record.value()
+            String currDateTime = df.format(new Date());
+            System.err.println("topic:" + topic +",dateTime:" + currDateTime + ",key:" + record.key() + ",value:" + record.value()
                     + ",partition:" + recordMetadata.partition() + ",offset:" + recordMetadata.offset());
 
 

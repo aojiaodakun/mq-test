@@ -23,13 +23,9 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 开源版简单消费者
- * 1、消费者订阅前，先创建partition=4的topic
- * 2、mq并发度。节点内部线程池并发
- * 3、消费重试
- *      while(n)调动业务MessageListener，仍返回拒绝，则丢弃消息。 n暂设为10
+ * 延迟消费者
  */
-public class KafkaConsumerMain {
+public class KafkaDelayConsumerMain {
 
 
     static {
@@ -42,7 +38,7 @@ public class KafkaConsumerMain {
         // 本地
         System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
 
-        String topic = "test1";
+        String topic = "delay_test";
         Properties properties = KafkaConfig.getConsumerConfig();
         // 消费者组
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "default_consumer_group");
@@ -69,7 +65,6 @@ public class KafkaConsumerMain {
                 continue;
             }
             int count = consumerRecords.count();
-            System.err.println("拉取批次:" + count);
             CountDownLatch countDownLatch = new CountDownLatch(count);
             int maxRetryTime = Integer.parseInt(System.getProperty(KafkaConstants.RetryConstants.MQ_KAFKA_CONSUMER_RETRY_TIMES, "10"));
             for (ConsumerRecord<String, String> record:consumerRecords) {

@@ -20,7 +20,7 @@ import java.util.concurrent.Future;
  * 开源版简单生产者
  * 注：先启动KafkaConsumerMain
  */
-public class KafkaProducerMain {
+public class KafkaRetryProducerMain {
 
     static {
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -33,7 +33,7 @@ public class KafkaProducerMain {
         // 本地
         System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
 
-        String topic = "test1";
+        String topic = "retry_test";
         Properties properties = KafkaConfig.getProducerConfig();
         KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
         // 发送前检测生产者
@@ -47,7 +47,7 @@ public class KafkaProducerMain {
 
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         for (int i = 0; i < 1; i++) {
-            String value = "value12-01-" + i;
+            String value = "value12-02-10";
             ProducerRecord<String, String> record = new ProducerRecord<>(topic, value);
             // 添加头部
             record.headers().add("hzk", "hzk".getBytes());
@@ -58,17 +58,6 @@ public class KafkaProducerMain {
             String currDateTime = df.format(new Date());
             System.err.println("topic=" + topic +",dateTime=" + currDateTime + ",key=" + record.key() + ",value=" + record.value()
                     + ",partition=" + recordMetadata.partition() + ",offset=" + recordMetadata.offset());
-
-
-            // 异步发送
-//            producer.send(record, ((metadata, exception) -> {
-//                if (exception == null) {
-//                    System.out.println("key:" + record.key() + ",value:" + record.value()
-//                            + ",partition:" + metadata.partition() + ",offset:" + metadata.offset());
-//                } else {
-//                    exception.printStackTrace();
-//                }
-//            }));
 
         }
         producer.close();

@@ -11,25 +11,24 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 开源版简单消费者
- * 1、消费者订阅前，先创建partition=4的topic
- * 2、mq并发度。节点内部线程池并发
- * 3、消费重试
- *      while(n)调动业务MessageListener，仍返回拒绝，则丢弃消息。 n暂设为10
+ * 纯测试，不参与demo
  */
-public class KafkaConsumerMain {
+public class KafkaConsumerTest {
 
 
     static {
@@ -42,7 +41,7 @@ public class KafkaConsumerMain {
         // 本地
         System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
 
-        String topic = "test1";
+        String topic = "test_seek2";
         Properties properties = KafkaConfig.getConsumerConfig();
         // 消费者组
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "default_consumer_group");
@@ -61,7 +60,11 @@ public class KafkaConsumerMain {
 
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         // 订阅会修改线程id
-        consumer.subscribe(Collections.singleton(topic));
+        List<String> topicList = new ArrayList<>();
+        topicList.add("test1");
+        topicList.add(topic);
+        consumer.subscribe(topicList);
+
 
         while (true) {
             ConsumerRecords<String, String> consumerRecords = consumer.poll(Duration.ofMillis(100));
@@ -74,6 +77,15 @@ public class KafkaConsumerMain {
             int maxRetryTime = Integer.parseInt(System.getProperty(KafkaConstants.RetryConstants.MQ_KAFKA_CONSUMER_RETRY_TIMES, "10"));
             for (ConsumerRecord<String, String> record:consumerRecords) {
                 int partition = record.partition();
+
+//                if (!record.topic().equals("")) {
+//                    TopicPartition topicPartition = new TopicPartition(record.topic(), record.partition());
+//                    consumer.seek(topicPartition, record.offset());
+//                    System.err.println("seek,receiveCurrTime=" + df.format(new Date()) + ",topic=" + record.topic() + ",value=" + record.value() +
+//                            ",partition=" + record.partition() + ",offset=" + record.offset());
+//                    continue;
+//                }
+
                 System.err.println("receiveCurrTime=" + df.format(new Date()) + ",topic=" + record.topic() + ",value=" + record.value() +
                         ",partition=" + record.partition() + ",offset=" + record.offset());
                 semaphore.acquire();

@@ -14,11 +14,14 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
 /**
  * 发送延迟消息
+ * 注：先启动KafkaDelayConsumerMain
  */
 public class KafkaDelayProducerMain {
 
@@ -40,17 +43,19 @@ public class KafkaDelayProducerMain {
         } catch (IllegalStateException e) {
             e.getMessage();
         }
-
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         for (int i = 0; i < 1; i++) {
-            String value = "value-delay" + i;
+            String value = "12-02-value-delay-1";
             ProducerRecord<String, String> record = new ProducerRecord<>(topic, value);
-            // 延迟消息
-            int seconds = 7;
+            // 延迟秒数
+            int seconds = 37;
             long startDeliverTime = 0;
             MetaTime metaTime = DelayControlManager.selectMaxMetaTime(seconds);
             if (metaTime != MetaTime.delay_1s) {
                 String delayTopicName = KafkaDelayManager.getDelayTopicName(metaTime.getName());
                 record = new ProducerRecord<>(delayTopicName, value);
+                // 源topic
+                record.headers().add(KafkaConstants.DelayConstants.ORIGIN_TOPIC, topic.getBytes());
                 // 目标topic
                 record.headers().add(KafkaConstants.DelayConstants.TARGET_TOPIC, topic.getBytes());
                 // 开始投递时间
@@ -60,7 +65,7 @@ public class KafkaDelayProducerMain {
             // 同步发送
             Future<RecordMetadata> future = producer.send(record);
             RecordMetadata recordMetadata = future.get();
-            System.err.println("startDeliverTime:" + startDeliverTime + ",currTime:" + System.currentTimeMillis() + ",topic:" + record.topic() + ",value:" + record.value()
+            System.err.println("startDeliverTime:" + startDeliverTime + ",sendCurrTime:" + df.format(new Date()) + ",topic:" + record.topic() + ",value:" + record.value()
                     + ",partition:" + recordMetadata.partition() + ",offset:" + recordMetadata.offset());
         }
         producer.close();
