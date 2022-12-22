@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * 多个Conn对象测试，一个conn最大channel为2048
  */
-public class MultiConnTest {
+public class RabbitMQMultiConnTest {
 
     private final static String QUEUE_NAME = "work_queues";
 

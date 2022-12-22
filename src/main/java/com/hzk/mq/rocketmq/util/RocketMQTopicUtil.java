@@ -89,13 +89,16 @@ public class RocketMQTopicUtil {
         return true;
     }
 
+
     /**
      * 根据 brokerAddr or clusterName 创建topic
      *
-     * @param brokerAddr  在指定 broker 上创建topic时，此参数为必填，否则传null
-     * @param clusterName 在指定 cluster 上创建topic时，此参数为必填，否则传null
-     * @param topic       要创建的topic
-     * @return 创建成功，返回true
+     * @param brokerAddr brokerAddr
+     * @param clusterName clusterName
+     * @param topic topic
+     * @param queueNums 队列数，默认4
+     * @param rpcHook rpcHook
+     * @return 布尔值
      */
     private static boolean createTopic(String brokerAddr, String clusterName, String topic, int queueNums, RPCHook rpcHook) {
         if (StringUtils.isBlank(topic)) {

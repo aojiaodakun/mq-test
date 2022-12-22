@@ -50,7 +50,7 @@ public class KafkaAdminUtil {
     /**
      * 创建topic
      * @param topicName topicName
-     * @param numPartitions 分区数，kafka默认4
+     * @param numPartitions 分区数，kafka默认1
      * @param replicationFactor 副本数，不能超过broker数
      * @return
      */
