@@ -1,26 +1,10 @@
 package com.hzk.mq.rocketmq.util;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.rocketmq.client.exception.MQBrokerException;
-import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.common.MixAll;
-import org.apache.rocketmq.common.protocol.body.ClusterInfo;
-import org.apache.rocketmq.common.protocol.route.BrokerData;
-import org.apache.rocketmq.remoting.RPCHook;
-import org.apache.rocketmq.remoting.exception.RemotingConnectException;
-import org.apache.rocketmq.remoting.exception.RemotingSendRequestException;
-import org.apache.rocketmq.remoting.exception.RemotingTimeoutException;
-import org.apache.rocketmq.srvutil.ServerUtil;
+import org.apache.rocketmq.common.TopicConfig;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
-import org.apache.rocketmq.tools.command.SubCommandException;
-import org.apache.rocketmq.tools.command.topic.UpdateTopicSubCommand;
+import org.apache.rocketmq.tools.admin.MQAdminExt;
+import org.apache.rocketmq.tools.command.CommandUtil;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,177 +18,47 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RocketMQTopicUtil {
 
-    private static Map<String, Set<String>> clusterNameMap = new ConcurrentHashMap<>(2);
+    private static Map<String, Set<String>> CLUSTERNAME_MASTERADDR_MAP = new ConcurrentHashMap<>(2);
 
     /**
-     * 在指定name server下使用默认参数创建topic
+     * 在指定nameServer的clusterName下使用默认参数创建topic
      *
-     * @param namesrvAddr
-     * @param topic
-     * @return
+     * @param topic topic
+     * @param queueNums 读写队列数
+     * @return 布尔值
      */
-    public static boolean createTopic(String namesrvAddr, String topic, int queueNums, RPCHook rpcHook) {
+    public static boolean createTopic(String topic, int queueNums) {
+        DefaultMQAdminExt mqAdminExt = RocketMQAdminExtUtil.getMQAdminExt();
         try {
-            System.setProperty(MixAll.NAMESRV_ADDR_PROPERTY, namesrvAddr);
-            Set<String> clusterNames = getClusterNames(namesrvAddr);
-            for (String clusterName : clusterNames) {
-                createTopic(null, clusterName, topic, queueNums, rpcHook);
+            String clusterName = "DefaultCluster";
+            Set<String> masterSet = getMasterAddrSet(mqAdminExt, clusterName);
+            for (String address : masterSet) {
+                // 判断topic是否存在
+                TopicConfig topicConfig = mqAdminExt.examineTopicConfig(address, topic);
+                if (topicConfig == null) {
+                    topicConfig = new TopicConfig(topic);
+                    topicConfig.setReadQueueNums(queueNums);
+                    topicConfig.setWriteQueueNums(queueNums);
+                    mqAdminExt.createAndUpdateTopicConfig(address, topicConfig);
+                }
             }
             return true;
         } catch (Exception e) {
+            System.err.println("error when RocketMQTopicUtil createTopic");
             e.printStackTrace();
-            throw new RuntimeException("error when RocketMQTopicUtil createTopic," +
-                    "namesrvAddr:"+namesrvAddr+",topic:"+topic, e);
-        }
-    }
-
-    /**
-     * 创建topic 可以自定义所有topic支持的参数
-     *
-     * @param subargs updateTopic命名支持的所有参数选项
-     * @return topic创建成功，返回 true
-     * @throws SubCommandException
-     */
-    private static boolean createTopic(String[] subargs, RPCHook rpcHook) {
-        /*String[] subargs = new String[] {
-                "-b 10.1.4.231:10911",
-                "-t unit-test-from-java-1",
-                "-r 8",
-                "-w 8",
-                "-p 6",
-                "-o false",
-                "-u false",
-                "-s false"};*/
-        try {
-            UpdateTopicSubCommand cmd = new UpdateTopicSubCommand();
-            Options options = ServerUtil.buildCommandlineOptions(new Options());
-            final Options updateTopicOptions = cmd.buildCommandlineOptions(options);
-            final CommandLine commandLine = ServerUtil.parseCmdLine("mqadmin " + cmd.commandName(),
-                    subargs, updateTopicOptions, new PosixParser());
-            cmd.execute(commandLine, updateTopicOptions, rpcHook);
-        } catch (SubCommandException e) {
-            e.printStackTrace();
-            throw new RuntimeException("error when RocketMQTopicUtil UpdateTopicSubCommand.execute", e);
-        }
-        return true;
-    }
-
-
-    /**
-     * 根据 brokerAddr or clusterName 创建topic
-     *
-     * @param brokerAddr brokerAddr
-     * @param clusterName clusterName
-     * @param topic topic
-     * @param queueNums 队列数，默认4
-     * @param rpcHook rpcHook
-     * @return 布尔值
-     */
-    private static boolean createTopic(String brokerAddr, String clusterName, String topic, int queueNums, RPCHook rpcHook) {
-        if (StringUtils.isBlank(topic)) {
             return false;
-        }
-        List<String> argList = new LinkedList<>();
-        argList.add("-t " + topic);
-        if (StringUtils.isNotBlank(brokerAddr)) {
-            argList.add("-b " + brokerAddr.trim());
-        } else {
-            argList.add("-c " + clusterName.trim());
-        }
-        if (queueNums != 0) {
-            // 读队列数
-            argList.add("-r " + queueNums);
-            // 写队列数
-            argList.add("-w " + queueNums);
-        }
-        return createTopic(argList.toArray(new String[0]), rpcHook);
-    }
-
-    /**
-     * 获取指定 namesrv下的集群信息
-     *
-     * @param namesrvAddr
-     * @return
-     * @throws MQClientException
-     * @throws InterruptedException
-     * @throws MQBrokerException
-     * @throws RemotingTimeoutException
-     * @throws RemotingSendRequestException
-     * @throws RemotingConnectException
-     */
-    private static ClusterInfo getClusterInfo(String namesrvAddr) {
-        if (StringUtils.isBlank(namesrvAddr)) {
-            return new ClusterInfo();
-        }
-        ClusterInfo clusterInfo = null;
-        try {
-            DefaultMQAdminExt mqAdminExt = new DefaultMQAdminExt(5000L);
-            mqAdminExt.setInstanceName(Long.toString(System.currentTimeMillis()));
-            mqAdminExt.setNamesrvAddr(namesrvAddr);
-            mqAdminExt.start();
-            clusterInfo = mqAdminExt.examineBrokerClusterInfo();
+        } finally {
             mqAdminExt.shutdown();
-        } catch (InterruptedException | RemotingConnectException | RemotingSendRequestException
-                | MQBrokerException | MQClientException | RemotingTimeoutException e) {
-            e.printStackTrace();
-            throw new RuntimeException("error when RocketMQTopicUtil getClusterInfo,namesrvAddr:"+namesrvAddr, e);
         }
-        return clusterInfo;
     }
 
-    /**
-     * 获取指定name server下的所有集群名称
-     *
-     * @param namesrvAddr
-     * @return
-     * @throws MQClientException
-     * @throws InterruptedException
-     * @throws MQBrokerException
-     * @throws RemotingTimeoutException
-     * @throws RemotingSendRequestException
-     * @throws RemotingConnectException
-     */
-    private static Set<String> getClusterNames(String namesrvAddr){
-        Set<String> clusterNames = clusterNameMap.get(namesrvAddr);
-        if (clusterNames != null) {
-            return clusterNames;
-        } else {
-            clusterNames = getClusterInfo(namesrvAddr).getClusterAddrTable().keySet();
-            clusterNameMap.put(namesrvAddr, clusterNames);
+    public static Set<String> getMasterAddrSet(MQAdminExt mqAdminExt, String clusterName) throws Exception{
+        if (CLUSTERNAME_MASTERADDR_MAP.containsKey(clusterName)) {
+            return CLUSTERNAME_MASTERADDR_MAP.get(clusterName);
         }
-        return clusterNames;
-    }
-
-    /**
-     * 获取指定 namesrv 下的所有broker信息（多name server下不确定能否正常工作）
-     *
-     * @param namesrvAddr namesrv地址
-     * @return HashMap<String, BrokerData>
-     */
-    private static Map<String, BrokerData> getAllBrokerInfo(String namesrvAddr){
-        return getClusterInfo(namesrvAddr).getBrokerAddrTable();
-    }
-
-    /**
-     * 获取连接到指定 namesrv 下的所有broker地址
-     *
-     * @param namesrvAddr
-     * @return
-     */
-    private static Set<String> getBrokerAddrs(String namesrvAddr){
-        Map<String, BrokerData> allBrokerInfo = getAllBrokerInfo(namesrvAddr);
-        Set<String> brokerAddrs = new HashSet<>();
-        for (BrokerData brokerData : allBrokerInfo.values()) {
-            brokerAddrs.addAll(brokerData.getBrokerAddrs().values());
-        }
-        return brokerAddrs;
-    }
-
-
-    public static void main(String[] args) {
-        boolean createTopic = RocketMQTopicUtil.createTopic("localhost:9876", "11-16-test1", 1, null);
-        System.out.println(createTopic);
-
+        Set<String> masterSet = CommandUtil.fetchMasterAddrByClusterName(mqAdminExt, clusterName);
+        CLUSTERNAME_MASTERADDR_MAP.putIfAbsent(clusterName, masterSet);
+        return masterSet;
     }
 
 }

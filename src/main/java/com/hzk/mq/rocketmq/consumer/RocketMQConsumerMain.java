@@ -24,7 +24,8 @@ public class RocketMQConsumerMain {
             consumer.setInstanceName("hzk");
         }
         consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
-        String topic = "TopicTest";
+//        String topic = "TopicTest";
+        String topic = "test-01-13";
         consumer.subscribe(topic, "*");
         consumer.registerMessageListener(new MessageListenerConcurrently() {
             @Override

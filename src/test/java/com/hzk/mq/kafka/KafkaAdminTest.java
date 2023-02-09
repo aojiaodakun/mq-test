@@ -56,7 +56,7 @@ public class KafkaAdminTest {
          */
         System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
         // 目标topic
-        targetTopic = "delay_test";
+        targetTopic = "sensor";
         value = "11-22-testvalue1";
 
         adminClient = AdminClient.create(KafkaConfig.getAdminConfig());
@@ -119,7 +119,7 @@ public class KafkaAdminTest {
     @Test
     public void describeTopicsTest() throws Exception {
         System.err.println("------------------------------");
-        String topicName = "delay_5s_bos";
+        String topicName = "test1";
         DescribeTopicsResult describeTopicsResult = adminClient.describeTopics(Collections.singleton(topicName));
         Map<String, TopicDescription> stringTopicDescriptionMap = describeTopicsResult.all().get();
         stringTopicDescriptionMap.forEach((topic, describe) ->{
