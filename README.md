@@ -124,7 +124,7 @@ rabbitmq-server.bat start
 
 http://localhost:15672/#/
 
-1.4、快速启动
+1.5、快速启动
 
 根路径新建start.bat
 
