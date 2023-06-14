@@ -139,6 +139,10 @@ https://rocketmq.apache.org/download/
 
 #### 1.2、配置修改
 
+> 0、环境变量
+
+ROCKETMQ_HOME=D:\tool\rocketmq-4.9.3
+
 > 1、namesrv
 
 根路径新增namesrvhome文件夹
