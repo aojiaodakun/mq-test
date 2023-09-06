@@ -60,6 +60,7 @@ dataDir=D:\\tool\\kafka_2.12-3.1.0\\zkData
 
 根路径创建logs文件夹；
 /config/server.properties
+host.name=localhost
 listeners=PLAINTEXT://:9092
 log.dirs=D:\\tool\\kafka_2.12-3.1.0\\logs
 auto.create.topics.enable=false
@@ -139,7 +140,7 @@ https://rocketmq.apache.org/download/
 
 #### 1.2、配置修改
 
-> 0、环境变量
+> 0、系统变量
 
 ROCKETMQ_HOME=D:\tool\rocketmq-4.9.3
 
@@ -151,35 +152,38 @@ set "JAVA_OPT=%JAVA_OPT% -Duser.home=D:\tool\rocketmq-4.9.3\namesrvhome"
 
 > 2、broker
 
-根路径新增storeRoot文件夹
+根路径新增brokerhome文件夹
 /bin/runbroker.cmd
-set "JAVA_OPT=%JAVA_OPT% -Duser.home=D:\tool\rocketmq-4.9.3\storeRoot"
+set "JAVA_OPT=%JAVA_OPT% -Duser.home=D:\tool\rocketmq-4.9.3\brokerhome"
 
 #### 1.3、启动namesrv，端口9876
 执行bin/mqnamesrv.cmd
 
-#### 1.4、启动单机broker，端口10911
-执行bin/mqbroker.cmd -n localhost:9876 autoCreateTopicEnable = true
+#### 1.4、启动broker，端口10911
+执行bin/mqbroker.cmd -n localhost:9876
 
+#### 1.5、tools.cmd启动消费者
+set NAMESRV_ADDR=localhost:9876
 
-#### 2、rocketmq-console在windows单机部署，端口8999
-https://github.com/apache/rocketmq-externals/releases/tag/rocketmq-console-1.0.0
+tools.cmd org.apache.rocketmq.example.quickstart.Consumer
+
+#### 1.6、tools.cmd启动生产者
+set NAMESRV_ADDR=localhost:9876
+
+tools.cmd org.apache.rocketmq.example.quickstart.Producer
+
+#### 2、rocketmq-dashboard在windows单机部署，端口8999
+https://github.com/apache/rocketmq-dashboard/releases/tag/rocketmq-dashboard-1.0.0
 下载Source code(zip)
 
-2.1、修改配置文件，src/main/resources/application.properties
-
-server.port=8999
-rocketmq.config.namesrvAddr=127.0.0.1:9876
-rocketmq.config.dataPath=   // 建议配置，否则默认建到用户目录
-
-2.2、maven打包
+2.1、maven打包
 
 根目录，cmd，执行mvn clean install -Dmaven.test.skip=true
 
-2.3、启动控制台
+2.2、启动控制台
 
-target目录，cmd，java -jar -Xms512m -Xmx1024m rocketmq-console-ng-1.0.0.jar
+根目录，cmd，java -Drocketmq.namesrv.addr=127.0.0.1:9876 -Dserver.port=9999 -jar .\target\rocketmq-dashboard-1.0.0.jar
 
-2.4、访问控制台
+2.3、访问控制台
 
 localhost:8999
