@@ -41,7 +41,7 @@ public class KafkaConsumerTest {
         // 本地
         System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
 
-        String topic = "test1";
+        String topic = "test";
         Properties properties = KafkaConfig.getConsumerConfig();
         // 消费者组
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "default_consumer_group");
@@ -61,7 +61,7 @@ public class KafkaConsumerTest {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         // 订阅会修改线程id
         List<String> topicList = new ArrayList<>();
-        topicList.add("test1");
+//        topicList.add("test33");
         topicList.add(topic);
         consumer.subscribe(topicList);
 

@@ -19,10 +19,12 @@ public class RabbitMQBroadcastProducer {
             connection = RabbitMQFactory.getConnection();
             channel = connection.createChannel();
 
-            String message = "Hello World，靓仔666!";
-            //消息的routingKey就是队列名称
-            channel.basicPublish(EXCHANGE_NAME, "", null, message.getBytes());
-            System.out.println(" [x] Sent '" + message + "'");
+            for (int i = 0; i < 10; i++) {
+                String message = "Hello World，靓仔" + i;
+                //消息的routingKey就是队列名称
+                channel.basicPublish(EXCHANGE_NAME, "", null, message.getBytes());
+                System.out.println(" [x] Sent '" + message + "'");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

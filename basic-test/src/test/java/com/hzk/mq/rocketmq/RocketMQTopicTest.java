@@ -17,7 +17,7 @@ public class RocketMQTopicTest {
 
     @Test
     public void createTopicTest() throws Exception {
-        boolean isSuccess = RocketMQTopicUtil.createTopic( "test0808_01", 2);
+        boolean isSuccess = RocketMQTopicUtil.createTopic( "TopicTest", 4);
         Assert.assertEquals(isSuccess, Boolean.TRUE);
     }
 

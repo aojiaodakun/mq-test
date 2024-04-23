@@ -36,13 +36,14 @@ public class KafkaProducerTest {
 
     public static void main(String[] args) throws Exception{
         // 本地
-        System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
+//        System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
 
 
         Properties properties = KafkaConfig.getProducerConfig();
         properties.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 8);
         properties.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 10485760);
-        String topic = "test1";
+        String topic = "test";
+//        String topic = "test33";
 //        String topic = "retry_test";
         KafkaAdminUtil.createTopic(topic, 4, (short) 1);
 
@@ -64,10 +65,10 @@ public class KafkaProducerTest {
 
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        byte[] bytes = new byte[1024 * 1024 * 1];
-        for (int i = 0; i < 2; i++) {
-            String value = "value12-19-" + i;
-            value = new String(bytes);
+//        byte[] bytes = new byte[1024 * 1024 * 1];
+        for (int i = 0; i < 8; i++) {
+            String value = "value11-02-" + i;
+//            value = new String(bytes);
             ProducerRecord<String, String> record = new ProducerRecord<>(topic, value);
 
             // 添加头部

@@ -42,10 +42,10 @@ public class KafkaConsumerMain {
         // 本地
         System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
 
-        String topic = "test1";
+        String topic = "TopicTest34";
         Properties properties = KafkaConfig.getConsumerConfig();
         // 消费者组
-        properties.put(ConsumerConfig.GROUP_ID_CONFIG, "default_consumer_group");
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, "default_consumer_group_TopicTest34");
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
         /**
          * 1、消费者订阅前，先创建partition=4的topic

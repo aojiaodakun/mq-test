@@ -1,9 +1,13 @@
 package com.hzk.mq.rabbitmq.producer;
 
 import com.hzk.mq.rabbitmq.factory.RabbitMQFactory;
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.MessageProperties;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *  rabbitmq.conf
@@ -14,7 +18,7 @@ import com.rabbitmq.client.MessageProperties;
  */
 public class RabbitMQProducerTest {
 
-    private final static String QUEUE_NAME = "hello";
+    private final static String QUEUE_NAME = "work_queues_test_0";
 
     public static void main(String[] args) throws Exception{
         Connection connection = null;
@@ -23,10 +27,20 @@ public class RabbitMQProducerTest {
             connection = RabbitMQFactory.getConnection();
             channel = connection.createChannel();
             channel.queueDeclare(QUEUE_NAME, true, false, false, null);
-            for (int i = 0; i < 20; i++) {
+            
+            Map<String, Object> argMap = new HashMap<>();
+            argMap.put("appId", "bos1");
+
+            for (int i = 0; i < 1; i++) {
+                AMQP.BasicProperties basicProperties = new AMQP.BasicProperties("text/plain",
+                        null,
+                        argMap,
+                        2,
+                        0, null, null, null,
+                        null, null, null, null,
+                        null, null);
                 String message = "消息-" + i;
-                //发送的消息持久化,重启rabbitmq消息也不会丢失
-                channel.basicPublish("", QUEUE_NAME, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
+                channel.basicPublish("", QUEUE_NAME, basicProperties, message.getBytes());
                 System.out.println(" [x] Sent '" + message + "'");
             }
 

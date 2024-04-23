@@ -20,7 +20,7 @@ public class KafkaConfig {
     public static Properties getProducerConfig(){
         Properties properties = new Properties();
         // 集群
-        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, System.getProperty(KafkaConstants.BOOTSTRAP_SERVERS));
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, System.getProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092"));
         // 序列化
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
@@ -41,7 +41,7 @@ public class KafkaConfig {
     public static Properties getConsumerConfig(){
         Properties properties = new Properties();
         // 集群
-        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, System.getProperty(KafkaConstants.BOOTSTRAP_SERVERS));
+        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, System.getProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092"));
         // 序列化
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -60,7 +60,7 @@ public class KafkaConfig {
 
     public static Properties getAdminConfig(){
         Properties properties = new Properties();
-        properties.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, System.getProperty(KafkaConstants.BOOTSTRAP_SERVERS));
+        properties.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, System.getProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092"));
         properties.setProperty(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, "30000");
         // 认证
         putAuthConfig(properties);

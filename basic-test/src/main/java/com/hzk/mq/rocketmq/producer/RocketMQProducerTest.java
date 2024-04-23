@@ -20,10 +20,12 @@ public class RocketMQProducerTest {
         DefaultMQProducer producer = new DefaultMQProducer("hzk_producer_group_name", rpcHook);
         // 分号分割
         producer.setNamesrvAddr("localhost:9876");
+        producer.setRetryTimesWhenSendFailed(5);
+        producer.setSendMsgTimeout(10000);
 //        producer.setNamesrvAddr("localhost:9876;localhost:9877");
         producer.start();
 
-        String topic = "test0808_01";
+        String topic = "TopicTest";
         for (int i = 0; i < 1; i++) {
             try {
                 Message msg = new Message(topic/* Topic */,

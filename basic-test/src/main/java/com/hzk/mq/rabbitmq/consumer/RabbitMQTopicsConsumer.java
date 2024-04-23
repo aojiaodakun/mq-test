@@ -21,35 +21,28 @@ public class RabbitMQTopicsConsumer {
     public static void main(String[] args) throws Exception {
         Connection connection = RabbitMQFactory.getConnection();
         Channel channel = connection.createChannel();
+
         //声明exchange,类型为topic,根据routingKey匹配bindingKey模式来路由消息
         channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.TOPIC);
 
         channel.queueDeclare(QUEUE_NAME_1, true, false, false, null);
         channel.queueDeclare(QUEUE_NAME_2, true, false, false, null);
         System.out.println("开始接受消息...");
-        new Thread(() -> {
-            try {
-                DeliverCallback deliverCallback = (consumerTag, delivery) -> {
-                    String message = new String(delivery.getBody(), "UTF-8");
-                    System.out.println("topics_destination_terminal Received '" + delivery.getEnvelope().getRoutingKey() + ":" + message + "'");
-                };
-                channel.basicConsume(QUEUE_NAME_1, true, deliverCallback, consumerTag -> { });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
 
-        new Thread(() -> {
-            try {
-                DeliverCallback deliverCallback = (consumerTag, delivery) -> {
-                    String message = new String(delivery.getBody(), "UTF-8");
-                    System.out.println("topics_destination_file Received '" + delivery.getEnvelope().getRoutingKey() + ":" + message + "'");
-                };
-                channel.basicConsume(QUEUE_NAME_2, true, deliverCallback, consumerTag -> { });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
+        DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), "UTF-8");
+            System.out.println("topics_destination_terminal Received '" + delivery.getEnvelope().getRoutingKey() + ":" + message + "'");
+        };
+        channel.basicConsume(QUEUE_NAME_1, true, deliverCallback, consumerTag -> { });
+
+
+        DeliverCallback deliverCallback2 = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), "UTF-8");
+            System.out.println("topics_destination_file Received '" + delivery.getEnvelope().getRoutingKey() + ":" + message + "'");
+        };
+        Channel channel2 = connection.createChannel();
+        channel2.basicConsume(QUEUE_NAME_2, true, deliverCallback2, consumerTag -> { });
+
     }
 
 }

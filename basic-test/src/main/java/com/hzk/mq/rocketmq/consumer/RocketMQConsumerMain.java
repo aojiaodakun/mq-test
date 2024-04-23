@@ -32,12 +32,8 @@ public class RocketMQConsumerMain {
     }
 
     public static void main(String[] args) throws Exception{
-
-
-
-
         String groupName = "hzkConsumerGroup_1";
-        String topic = "test0808_01";
+        String topic = "TopicTest";
 //        RocketMQTopicUtil.createTopic(topic, 2);
 
         RPCHook rpcHook = new RPCHook() {
@@ -77,6 +73,8 @@ public class RocketMQConsumerMain {
 
 //        String topic = "test1";
         consumer.subscribe(topic, "*");
+        consumer.setConsumeThreadMin(5);
+        consumer.setConsumeThreadMax(50);
         consumer.registerMessageListener(new MessageListenerConcurrently() {
             @Override
             public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs,

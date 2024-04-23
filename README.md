@@ -131,6 +131,24 @@ http://localhost:15672/#/
 
 .\sbin\rabbitmq-server.bat start
 
+1.6、常用命令
+
+查询队列
+
+rabbitmqctl list_queues
+
+关闭应用
+
+rabbitmqctl stop_app
+
+执行清除命令
+
+rabbitmqctl reset
+
+启动应用
+
+rabbitmqctl start_app
+
 ---
 
 ### 四、rocketmq
@@ -182,7 +200,7 @@ https://github.com/apache/rocketmq-dashboard/releases/tag/rocketmq-dashboard-1.0
 
 2.2、启动控制台
 
-根目录，cmd，java -Drocketmq.namesrv.addr=127.0.0.1:9876 -Dserver.port=9999 -jar .\target\rocketmq-dashboard-1.0.0.jar
+根目录，cmd，java -Drocketmq.namesrv.addr=127.0.0.1:9876 -Dserver.port=8999 -jar .\target\rocketmq-dashboard-1.0.0.jar
 
 2.3、访问控制台
 

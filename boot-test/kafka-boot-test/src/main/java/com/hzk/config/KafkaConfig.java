@@ -1,24 +1,13 @@
 package com.hzk.config;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import java.util.Properties;
 
 public class KafkaConfig {
-
-    static {
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        Logger root = loggerContext.getLogger("root");
-        root.setLevel(Level.INFO);
-    }
 
     private static final String SECURITY_PROTOCOL = CommonClientConfigs.SECURITY_PROTOCOL_CONFIG;
     private static final String SASL_JAAS_CONFIG = SaslConfigs.SASL_JAAS_CONFIG;
@@ -48,7 +37,7 @@ public class KafkaConfig {
 
         // SSL
         String securityProtocol = System.getProperty("securityProtocol");
-        if (!StringUtils.isEmpty(securityProtocol)) {
+        if (securityProtocol != null && !securityProtocol.equals("")) {
             String userName = System.getProperty("userName");
             String password = System.getProperty("password");
             String saslMechanism = System.getProperty("saslMechanism");
@@ -67,10 +56,10 @@ public class KafkaConfig {
 
 
     private static String getKafkaAuthConfig(String userName, String pw) {
-        if (StringUtils.isEmpty(userName)) {
+        if (userName != null && !userName.equals("")) {
             throw new RuntimeException("Config item 'userName' of kafka appender can't be empty when securityProtocol is 'SASL_PLAINTEXT'.");
         }
-        if (StringUtils.isEmpty(pw)) {
+        if (pw != null && !pw.equals("")) {
             throw new RuntimeException("Config item 'password' of kafka appender can't be empty when securityProtocol is 'SASL_PLAINTEXT'.");
         }
         System.setProperty("logKafkaUser", userName); //系统中其他kafka，默认用此userName

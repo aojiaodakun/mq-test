@@ -24,11 +24,9 @@ public class RabbitMQWorkQueuesConsumer {
         Channel channel = connection.createChannel();
         channel.queueDeclare(QUEUE_NAME, true, false, false, null);
         //模拟三个消费者,rabbitmq默认会把消息轮询推给每个消费者
-        for (int i = 0; i < 1; i++) {
-            new Thread(new Worker(connection, i)).start();
-//            new Thread(new Worker2(connection, i)).start();
-            //new Thread(new Worker3(connection, i)).start();
-        }
+            new Thread(new Worker(connection, 1)).start();
+            new Thread(new Worker2(connection, 2)).start();
+//            new Thread(new Worker3(connection, 3)).start();
 
         System.in.read();
     }
@@ -49,18 +47,24 @@ public class RabbitMQWorkQueuesConsumer {
         public void run() {
             try {
                 System.out.println("消费者-" + index + " 开始接受消息。");
+                Channel channel = connection.createChannel();
+
+                channel.basicQos(1);//一次只接受一条消息
                 DeliverCallback deliverCallback = (consumerTag, delivery) -> {
-                    String message = new String(delivery.getBody(), "UTF-8");
-                    System.out.println("消费者-" + index + " Received '" + message + "'");
                     try {
+                        String message = new String(delivery.getBody(), "UTF-8");
+                        System.out.println("消费者-" + index + " Received '" + message + "'");
+                        //业务处理...
                         Thread.sleep(1000);
-                    } catch (InterruptedException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
+                    } finally {
+                        //在业务处理完成后手动确认；避免一个消费者宕机等导致消息丢失
+                        channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
                     }
                 };
-                Channel channel = connection.createChannel();
-                //自动确认,如果业务处理失败或该消费者宕机,发送到该消费者的消息都会被删除
-                channel.basicConsume(QUEUE_NAME, true, deliverCallback, consumerTag -> { });
+                //autoAck设为false
+                channel.basicConsume(QUEUE_NAME, false, deliverCallback, consumerTag -> { });
             } catch (Exception e) {
                 e.printStackTrace();
             }
