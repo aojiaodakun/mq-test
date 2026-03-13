@@ -260,24 +260,6 @@
         </dependency>
         <!-- rocketmq end -->
 
-        <!-- tlqmq start -->
-<!--        <dependency>-->
-<!--            <groupId>com.tlq</groupId>-->
-<!--            <artifactId>TLQRemoteApi</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>system</scope>-->
-<!--            <systemPath>${project.basedir}/src/main/resources/lib/tlqmq/TLQRemoteApi-1.0.jar</systemPath>-->
-<!--        </dependency>-->
-        <dependency>
-            <groupId>com.tlq</groupId>
-            <artifactId>TongJMS</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-<!--            <systemPath>${project.basedir}/src/main/resources/lib/tlqmq/TongJMS-1.0.jar</systemPath>-->
-            <systemPath>${project.basedir}/src/main/resources/lib/tlqmq/TongJMS.jar</systemPath>
-        </dependency>
-        <!-- tlqmq end -->
-
         <!-- activemq start -->
         <dependency>
             <groupId>org.apache.activemq</groupId>
