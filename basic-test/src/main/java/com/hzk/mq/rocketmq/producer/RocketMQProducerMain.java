@@ -12,7 +12,7 @@ public class RocketMQProducerMain {
         producer.setNamesrvAddr("localhost:9876");
         producer.start();
 
-        String topic = "test-01-13";
+        String topic = "TopicTest";
         for (int i = 0; i < 5; i++) {
             try {
                 Message msg = new Message(topic/* Topic */,

@@ -26,9 +26,17 @@ public class RabbitMQProducerTest {
         try {
             connection = RabbitMQFactory.getConnection();
             channel = connection.createChannel();
-            channel.queueDeclare(QUEUE_NAME, true, false, false, null);
-            
+
+            String version = connection.getServerProperties().get("version").toString();
             Map<String, Object> argMap = new HashMap<>();
+            if (version.startsWith("4")) {
+                // 使用 Quorum Queue
+                argMap.put("x-queue-type", "quorum");
+            }
+            channel.queueDeclare(QUEUE_NAME, true, false, false, argMap);
+            // 开启发送方确认模式
+            channel.confirmSelect();
+
             argMap.put("appId", "bos1");
 
             for (int i = 0; i < 1; i++) {
@@ -41,6 +49,7 @@ public class RabbitMQProducerTest {
                         null, null);
                 String message = "消息-" + i;
                 channel.basicPublish("", QUEUE_NAME, basicProperties, message.getBytes());
+//                channel.waitForConfirms();
                 System.out.println(" [x] Sent '" + message + "'");
             }
 
@@ -53,7 +62,7 @@ public class RabbitMQProducerTest {
 //                channel.basicPublish("", QUEUE_NAME, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
 //                System.out.println(" [x] Sent '" + message + "'");
 //            }
-
+            System.in.read();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

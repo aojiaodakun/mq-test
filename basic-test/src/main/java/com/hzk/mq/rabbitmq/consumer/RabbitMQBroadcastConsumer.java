@@ -33,30 +33,32 @@ public class RabbitMQBroadcastConsumer {
 //            String queueName = channel.queueDeclare().getQueue();
             // 声明队列
             Map<String, Object> queueArgumentMap = new HashMap<>();
-            queueArgumentMap.put("x-message-ttl", 10000);// 单位毫秒
+//            queueArgumentMap.put("x-message-ttl", 10000);// 消息过期，单位毫秒
             queueArgumentMap.put("appId", "bos");
-            String queueName = channel.queueDeclare("", false, true, true, queueArgumentMap).getQueue();
+            String queueName = channel.queueDeclare("broadcast_mservice-bos-111", false, true, true, queueArgumentMap).getQueue();
             // exchange绑定
             Map<String, Object> exchangeArgumentMap = new HashMap<>();
             exchangeArgumentMap.put("appId", "bos");
             channel.queueBind(queueName, EXCHANGE_NAME, "", exchangeArgumentMap);
+
 
             DefaultConsumer consumer = new DefaultConsumer(channel){
                 @Override
                 public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                     System.out.println("接收数据:" + new String(body));
                     try {
-                        Thread.currentThread().sleep(1000 * 130);
+                        Thread.currentThread().sleep(1000 * 30);
+//                        Thread.currentThread().sleep(1000 * 130);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                     channel.basicAck(envelope.getDeliveryTag(), false);
                 }
             };
+            Map<String, Object> consumerArgumentMap = new HashMap<>();
+            consumerArgumentMap.put("instanceId", "mservice-bos-111");
+            String result = channel.basicConsume(queueName, false, "mservice-bos-111", false, false, consumerArgumentMap, consumer);
 
-
-
-            String result = channel.basicConsume(queueName, false, consumer);
 //            Thread.currentThread().sleep(1000 * 10);
 //            // 报错ShutdownSignalException
 //            try {

@@ -18,7 +18,14 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
         <!-- kafka start -->
         <dependency>
             <groupId>org.apache.kafka</groupId>
@@ -31,19 +38,245 @@
         <!-- kafka end -->
 
         <!-- rocketmq start -->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.rocketmq</groupId>-->
+<!--            <artifactId>rocketmq-client</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.rocketmq</groupId>-->
+<!--            <artifactId>rocketmq-common</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.rocketmq</groupId>-->
+<!--            <artifactId>rocketmq-tools</artifactId>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-client-java</artifactId>
+        </dependency>
+
+        <!-- rocket 5.3.0 -->
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-acl</artifactId>
+            <version>5.3.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/update/rocketmq-acl-5.3.0.jar</systemPath>
+        </dependency>
         <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-client</artifactId>
+            <version>5.3.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/update/rocketmq-client-5.3.0.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-common</artifactId>
+            <version>5.3.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/update/rocketmq-common-5.3.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-remoting</artifactId>
+            <version>5.3.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/update/rocketmq-remoting-5.3.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-srvutil</artifactId>
+            <version>5.3.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/update/rocketmq-srvutil-5.3.0.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-tools</artifactId>
+            <version>5.3.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/update/rocketmq-tools-5.3.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-proto</artifactId>
+            <version>2.0.3</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/rocketmq-proto-2.0.3.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.github.aliyunmq</groupId>
+            <artifactId>rocketmq-slf4j-api</artifactId>
+            <version>1.0.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/rocketmq-slf4j-api-1.0.1.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.github.aliyunmq</groupId>
+            <artifactId>rocketmq-logback-classic</artifactId>
+            <version>1.0.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/rocketmq-logback-classic-1.0.1.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-api</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-api-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-api-events</artifactId>
+            <version>${opentelemetry.alpha.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-api-events-1.29.0-alpha.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-context</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-context-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-common</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-exporter-common-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-logging</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-exporter-logging-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-logging-otlp</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-exporter-logging-otlp-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-exporter-otlp-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp-common</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-exporter-otlp-common-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-prometheus</artifactId>
+            <version>${opentelemetry.alpha.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-exporter-prometheus-1.29.0-alpha.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-sender-okhttp</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-exporter-sender-okhttp-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-extension-incubator</artifactId>
+            <version>${opentelemetry.alpha.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-extension-incubator-1.29.0-alpha.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-sdk-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-common</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-sdk-common-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-extension-autoconfigure-spi</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-sdk-extension-autoconfigure-spi-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-logs</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-sdk-logs-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-metrics</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-sdk-metrics-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-trace</artifactId>
+            <version>${opentelemetry.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-sdk-trace-1.29.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-semconv</artifactId>
+            <version>${opentelemetry.alpha.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/rocketmq/add/opentelemetry-semconv-1.29.0-alpha.jar</systemPath>
         </dependency>
         <!-- rocketmq end -->
+
+        <!-- tlqmq start -->
+<!--        <dependency>-->
+<!--            <groupId>com.tlq</groupId>-->
+<!--            <artifactId>TLQRemoteApi</artifactId>-->
+<!--            <version>1.0</version>-->
+<!--            <scope>system</scope>-->
+<!--            <systemPath>${project.basedir}/src/main/resources/lib/tlqmq/TLQRemoteApi-1.0.jar</systemPath>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>com.tlq</groupId>
+            <artifactId>TongJMS</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+<!--            <systemPath>${project.basedir}/src/main/resources/lib/tlqmq/TongJMS-1.0.jar</systemPath>-->
+            <systemPath>${project.basedir}/src/main/resources/lib/tlqmq/TongJMS.jar</systemPath>
+        </dependency>
+        <!-- tlqmq end -->
 
         <!-- activemq start -->
         <dependency>
@@ -86,6 +319,14 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.caucho</groupId>
+            <artifactId>hessian</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
         </dependency>
 
     </dependencies>

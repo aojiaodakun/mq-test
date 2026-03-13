@@ -1,0 +1,29 @@
+# Java class files
+*.class
+
+# JAR files
+*.jar
+
+# Eclipse files
+.settings/
+.classpath
+.project
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Maven files
+target/
+*.war
+*.ear
+
+# Gradle files
+build/

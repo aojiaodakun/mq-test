@@ -34,17 +34,30 @@ public class KafkaProducerTest {
     }
 
 
+    static {
+        // SASL_PLAIN，请求时间>30秒
+        System.setProperty(KafkaConstants.MQ_KAFKA_AUTH_ENABLE, "false");
+        System.setProperty("mq.kafka.sasl.mechanism", "PLAIN");
+        // SASL_SCRAM-SHA-512，请求时间>30秒
+        System.setProperty("mq.kafka.sasl.mechanism", "SCRAM-SHA-512");
+
+        // SSL
+//        System.setProperty("kafka.ssl.enable", "true");
+
+    }
+
+
+
     public static void main(String[] args) throws Exception{
         // 本地
-//        System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
+        System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
+//        System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "172.20.158.201:9092");
+//        System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "172.20.158.201:9093");
 
 
         Properties properties = KafkaConfig.getProducerConfig();
-        properties.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 8);
-        properties.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 10485760);
         String topic = "test";
-//        String topic = "test33";
-//        String topic = "retry_test";
+        // admin有自己的properties
         KafkaAdminUtil.createTopic(topic, 4, (short) 1);
 
 
@@ -61,7 +74,6 @@ public class KafkaProducerTest {
         Field kafkaConfigField = producer.getClass().getDeclaredField("producerConfig");
         kafkaConfigField.setAccessible(true);
         ProducerConfig producerConfig = (ProducerConfig)kafkaConfigField.get(producer);
-        System.out.println(producerConfig);
 
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 

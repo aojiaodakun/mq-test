@@ -42,7 +42,7 @@ http://localhost:8161/
 1.1、官网下载，版本kafka_2.12-3.1.0。kafka_scala_java
 https://kafka.apache.org/downloads
 
-1.2、启动内置zookeeper，端口2181
+1.2、zk模式、启动内置zookeeper，端口2181
 > 改配置
 
 根路径创建zkData文件夹；
@@ -54,48 +54,91 @@ dataDir=D:\\tool\\kafka_2.12-3.1.0\\zkData
 根路径下执行
 .\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
 
+1.3、KRaft模式
+
+> 生成集群ID
+
+windows
+```shell script
+.\bin\windows\kafka-storage.bat random-uuid
+```
+
+linux
+```shell script
+KAFKA_CLUSTER_ID="$(bin/kafka-storage.sh random-uuid)"
+```
+
+> 格式化存储目录
+
+windows
+```shell script
+.\bin\windows\kafka-storage.bat format -t 3Vz6nxoGRNWp37ZocKDVKw -c .\config\kraft\server.properties
+```
+
+linux
+```shell script
+./bin/kafka-storage.sh format \
+  -t $KAFKA_CLUSTER_ID \
+  -c config/kraft/server.properties
+```
+
 1.3、启动单机kafka，端口9092
 
 > 改配置
 
-根路径创建logs文件夹；
 /config/server.properties
+```shell script
 host.name=localhost
 listeners=PLAINTEXT://:9092
 log.dirs=D:\\tool\\kafka_2.12-3.1.0\\logs
 auto.create.topics.enable=false
+```
 
 > 启动单机kafka
-
+```shell script
 .\bin\windows\kafka-server-start.bat .\config\server.properties
+```
+
+>kRaft模式
+```shell script
+.\bin\windows\kafka-server-start.bat .\config\kraft\server.properties
+```
 
 1.4、创建topic=test
 
 根路径下执行
-.\bin\windows\kafka-topics.bat --create --bootstrap-server  localhost:2181 --replication-factor 1 --partitions 1 --topic test
+```shell script
+.\bin\windows\kafka-topics.bat --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic test
+```
 
 1.5、五、启动消费者
 
 根路径下执行
+```shell script
 .\bin\windows\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic test
+```
 
 1.6、启动生产者
-
+```shell script
 .\bin\windows\kafka-console-producer.bat --broker-list localhost:9092 --topic test
+```
 
 1.7、快速启动
 
 >zk
 
 根路径新建startZkServer.bat
-
+```shell script
 .\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
+```
+
 
 >kafka
 
 根路径新建startKafkaServer.bat
-
+```shell script
 .\bin\windows\kafka-server-start.bat .\config\server.properties
+```
 
 ---
 
@@ -111,7 +154,7 @@ https://www.erlang.org/patches/otp-23.2
 
 1.2、安装插件
 
-/sbin目录执行cmd
+/sbin目录执行cmd，开启15672端口监听，可访问控制台
 
 rabbitmq-plugins enable rabbitmq_management
 
@@ -141,7 +184,7 @@ rabbitmqctl list_queues
 
 rabbitmqctl stop_app
 
-执行清除命令
+清除所有队列
 
 rabbitmqctl reset
 

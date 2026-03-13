@@ -2,10 +2,15 @@ package com.hzk.mq.rocketmq;
 
 import com.hzk.mq.rocketmq.util.RocketMQAdminExtUtil;
 import org.apache.rocketmq.common.TopicConfig;
-import org.apache.rocketmq.common.admin.TopicStatsTable;
-import org.apache.rocketmq.common.protocol.body.ClusterInfo;
-import org.apache.rocketmq.common.protocol.route.BrokerData;
-import org.apache.rocketmq.common.protocol.route.TopicRouteData;
+//import org.apache.rocketmq.common.admin.TopicStatsTable;
+//import org.apache.rocketmq.common.protocol.body.ClusterInfo;
+//import org.apache.rocketmq.common.protocol.route.BrokerData;
+//import org.apache.rocketmq.common.protocol.route.TopicRouteData;
+
+import org.apache.rocketmq.remoting.protocol.admin.TopicStatsTable;
+import org.apache.rocketmq.remoting.protocol.body.ClusterInfo;
+import org.apache.rocketmq.remoting.protocol.route.BrokerData;
+import org.apache.rocketmq.remoting.protocol.route.TopicRouteData;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.rocketmq.tools.command.CommandUtil;
 import org.junit.Test;
@@ -21,6 +26,9 @@ public class DefaultMQAdminTest {
         String clusterName = "DefaultCluster";
         String topic = "test-01-13";
         int queueNum = 4;
+
+        ClusterInfo clusterInfo = mqAdminExt.examineBrokerClusterInfo();
+        Map<String, BrokerData> brokerAddrMap = clusterInfo.getBrokerAddrTable();
 
         // TODO,删除topic
 //        mqAdminExt.deleteTopicInNameServer(Collections.singleton(namesrvAddr), topic);
@@ -51,8 +59,7 @@ public class DefaultMQAdminTest {
             }
         }
 
-        ClusterInfo clusterInfo = mqAdminExt.examineBrokerClusterInfo();
-        Map<String, BrokerData> brokerAddrMap = clusterInfo.getBrokerAddrTable();
+
 
 //        mqAdminExt.createAndUpdateTopicConfig();
 

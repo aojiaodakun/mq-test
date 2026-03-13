@@ -5,11 +5,10 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.DefaultConsumer;
-import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Envelope;
-import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.ShutdownSignalException;
 import com.rabbitmq.client.impl.AMQImpl;
+import com.rabbitmq.client.impl.recovery.AutorecoveringChannel;
 
 import java.io.IOException;
 import java.time.LocalTime;
@@ -17,10 +16,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.LockSupport;
 
 /**
  * Work Queues(工作队列模式)，一个生产者，多个消费者，一条消息只能被一个消费者消费
@@ -31,10 +28,16 @@ public class RabbitMQConsumerTest {
 
     public static void main(String[] args) throws Exception {
         Connection connection = RabbitMQFactory.getConnection();
+        String version = connection.getServerProperties().get("version").toString();
 //        Map<String, Object> clientProperties = connection.getClientProperties();
         Channel channel = connection.createChannel();
 //        channel.queueDeclare(QUEUE_NAME, true, false, false, null);
-        channel.queueDeclare(QUEUE_NAME + "_0", true, false, false, null);
+        Map<String, Object> argMap = new HashMap<>();
+        if (version.startsWith("4")) {
+            // 使用 Quorum Queue
+            argMap.put("x-queue-type", "quorum");
+        }
+        channel.queueDeclare(QUEUE_NAME + "_0", true, false, false, argMap);
         channel.close();
 //        channel.queueDeclare(QUEUE_NAME + "_1", true, false, false, null);
 
@@ -42,7 +45,14 @@ public class RabbitMQConsumerTest {
 //            channel.queueDeclare(QUEUE_NAME + "_" + i, true, false, false, null);
 //        }
 
-        new Thread(new Worker(connection, 0), "hzk-consumer").start();
+        for (int i = 0; i < 1; i++) {
+            channel = connection.createChannel();
+            channel.queueDeclare(QUEUE_NAME + "_" + i, true, false, false, argMap);
+            channel.close();
+
+            new Thread(new Worker(connection, i), "hzk-consumer").start();
+        }
+//        new Thread(new Worker(connection, 0), "hzk-consumer").start();
 //        new Thread(new Worker(connection,channel,1), "hzk-consumer").start();
 
         System.in.read();
@@ -64,7 +74,7 @@ public class RabbitMQConsumerTest {
         public void run() {
             try {
                 Channel channel = connection.createChannel();
-                channel.basicQos(2);
+                channel.basicQos(1);
                 System.out.println("消费者-" + index + " 开始接受消息，channelNumber:" + channel.getChannelNumber());
                 RabbitConsumer rabbitConsumer = new RabbitConsumer(connection, channel, QUEUE_NAME + "_" + index);
 //                channel.basicConsume(QUEUE_NAME + "_" + index, false, rabbitConsumer);
@@ -72,7 +82,13 @@ public class RabbitMQConsumerTest {
                 Map<String, Object> argMap = new HashMap<>();
                 argMap.put("appId", "bos");
 //                channel.basicConsume(QUEUE_NAME + "_" + index, false, argMap, rabbitConsumer);
-                channel.basicConsume(QUEUE_NAME + "_" + index, false, rabbitConsumer);
+                String consumerTag = QUEUE_NAME + "_" + index;
+                String queueName = QUEUE_NAME + "_" + index;
+//                channel.basicCancel(queueName);
+                channel.basicConsume(QUEUE_NAME + "_" + index, false, consumerTag, rabbitConsumer);
+//                channel.basicConsume(QUEUE_NAME + "_" + index, false, consumerTag, rabbitConsumer);
+                long count = channel.consumerCount(queueName);
+                System.out.println(count);
 
 //                new Thread(()->{
 //                    try {
@@ -145,12 +161,16 @@ class RabbitConsumer extends DefaultConsumer {
         try {
             super.handleDelivery(consumerTag, envelope, properties, body);
 
-
             long deliveryTag = envelope.getDeliveryTag();
             System.out.println("receive message:" + deliveryTag + ",date:" + LocalTime.now());
+//            if (true) {
+//                Thread.sleep(1000 * 10);
+//                throw new IOException();
+//            }
             Thread.sleep(1000 * 130);
-//            channel.basicAck(deliveryTag, false);
             channel.basicAck(deliveryTag, false);
+
+//            this.channel.basicAck(deliveryTag, false);
             System.out.println("ack message:" + deliveryTag + ",date:" + LocalTime.now());
 
 //            executorService.execute(()->{
@@ -211,6 +231,14 @@ class RabbitConsumer extends DefaultConsumer {
     }
 
     @Override
+    public void handleCancel(String consumerTag) throws IOException {
+        super.handleCancel(consumerTag);
+        System.out.println(1);
+    }
+
+
+
+    @Override
     public void handleShutdownSignal(String consumerTag, ShutdownSignalException e) {
         super.handleShutdownSignal(consumerTag, e);
         e.printStackTrace();
@@ -240,21 +268,19 @@ class RabbitConsumer extends DefaultConsumer {
     @Override
     public void handleConsumeOk(String consumerTag) {
         super.handleConsumeOk(consumerTag);
+        System.err.println("handleConsumeOk," + consumerTag);
     }
 
     @Override
     public void handleCancelOk(String consumerTag) {
         super.handleCancelOk(consumerTag);
-    }
-
-    @Override
-    public void handleCancel(String consumerTag) throws IOException {
-        super.handleCancel(consumerTag);
+        System.err.println("handleCancelOk," + consumerTag);
     }
 
     @Override
     public void handleRecoverOk(String consumerTag) {
         super.handleRecoverOk(consumerTag);
+        System.err.println("handleRecoverOk," + consumerTag);
     }
 
     @Override

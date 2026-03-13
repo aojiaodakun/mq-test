@@ -17,7 +17,7 @@ public class RocketMQTopicTest {
 
     @Test
     public void createTopicTest() throws Exception {
-        boolean isSuccess = RocketMQTopicUtil.createTopic( "TopicTest", 4);
+        boolean isSuccess = RocketMQTopicUtil.createTopic( "TopicTest5", 4);
         Assert.assertEquals(isSuccess, Boolean.TRUE);
     }
 
@@ -35,15 +35,15 @@ public class RocketMQTopicTest {
          */
 //        DeleteTopicSubCommand.deleteTopic(adminExt, clusterName, topic);
 
-        Set<String> brokerAddressSet = CommandUtil.fetchMasterAddrByClusterName(adminExt, clusterName);
-        adminExt.deleteTopicInBroker(brokerAddressSet, topic);
-
-        Set<String> nameServerSet = null;
-        if (adminExt.getNamesrvAddr() != null) {
-            String[] ns = adminExt.getNamesrvAddr().trim().split(";");
-            nameServerSet = new HashSet(Arrays.asList(ns));
-        }
-        adminExt.deleteTopicInNameServer(nameServerSet, topic);
+//        Set<String> brokerAddressSet = CommandUtil.fetchMasterAddrByClusterName(adminExt, clusterName);
+//        adminExt.deleteTopicInBroker(brokerAddressSet, topic);
+//
+//        Set<String> nameServerSet = null;
+//        if (adminExt.getNamesrvAddr() != null) {
+//            String[] ns = adminExt.getNamesrvAddr().trim().split(";");
+//            nameServerSet = new HashSet(Arrays.asList(ns));
+//        }
+//        adminExt.deleteTopicInNameServer(nameServerSet, topic);
 
     }
 

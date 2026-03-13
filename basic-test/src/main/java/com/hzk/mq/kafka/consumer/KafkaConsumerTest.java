@@ -37,11 +37,21 @@ public class KafkaConsumerTest {
         root.setLevel(Level.INFO);
     }
 
+    static {
+        // SASL
+        System.setProperty(KafkaConstants.MQ_KAFKA_AUTH_ENABLE, "true");
+        System.setProperty("mq.kafka.sasl.mechanism", "PLAIN");
+        // SSL
+//        System.setProperty("kafka.ssl.enable", "true");
+
+    }
+
     public static void main(String[] args) throws Exception{
         // 本地
-        System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9092");
+        System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "localhost:9093");
+//        System.setProperty(KafkaConstants.BOOTSTRAP_SERVERS, "172.20.158.201:9092");
 
-        String topic = "test";
+        String topic = "test2";
         Properties properties = KafkaConfig.getConsumerConfig();
         // 消费者组
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "default_consumer_group");

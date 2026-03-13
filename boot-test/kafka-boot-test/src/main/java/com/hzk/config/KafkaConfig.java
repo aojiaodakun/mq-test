@@ -35,19 +35,26 @@ public class KafkaConfig {
         properties.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, System.getProperty("enable.idempotence", "true"));
 
 
-        // SSL
+        // SASL
         String securityProtocol = System.getProperty("securityProtocol");
         if (securityProtocol != null && !securityProtocol.equals("")) {
-            String userName = System.getProperty("userName");
-            String password = System.getProperty("password");
-            String saslMechanism = System.getProperty("saslMechanism");
-
-            String config = getKafkaAuthConfig(userName, password);
-            String mechanism = saslMechanism == null ? "PLAIN" : saslMechanism;
-
-            properties.put(SASL_MECHANISM, mechanism);
             properties.put(SECURITY_PROTOCOL, securityProtocol);
-            properties.put(SASL_JAAS_CONFIG, config);
+            if (securityProtocol.equals("SASL_PLAINTEXT")) {
+                String userName = System.getProperty("userName");
+                String password = System.getProperty("password");
+                String saslMechanism = System.getProperty("saslMechanism");
+                String loginModuleClass = System.getProperty("loginModuleClass");
+
+                String config = getKafkaAuthConfig(loginModuleClass, userName, password);
+                String mechanism = saslMechanism == null ? "PLAIN" : saslMechanism;
+                properties.put(SASL_MECHANISM, mechanism);
+                properties.put(SASL_JAAS_CONFIG, config);
+            } else if(securityProtocol.equals("SSL")) {
+                String truststoreLocation = System.getProperty("truststoreLocation");
+                String truststorePassword = System.getProperty("truststorePassword");
+                properties.put("ssl.truststore.location", truststoreLocation);
+                properties.put("ssl.truststore.password", truststorePassword);
+            }
         }
         System.out.println(properties);
         return properties;
@@ -55,17 +62,14 @@ public class KafkaConfig {
 
 
 
-    private static String getKafkaAuthConfig(String userName, String pw) {
-        if (userName != null && !userName.equals("")) {
+    private static String getKafkaAuthConfig(String loginModule, String userName, String pw) {
+        if (userName == null || userName.equals("")) {
             throw new RuntimeException("Config item 'userName' of kafka appender can't be empty when securityProtocol is 'SASL_PLAINTEXT'.");
         }
-        if (pw != null && !pw.equals("")) {
+        if (pw == null || pw.equals("")) {
             throw new RuntimeException("Config item 'password' of kafka appender can't be empty when securityProtocol is 'SASL_PLAINTEXT'.");
         }
-        System.setProperty("logKafkaUser", userName); //系统中其他kafka，默认用此userName
-        System.setProperty("logKafkaPwd", pw); //系统中其他kafka，默认用此password
-
-        return "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" + userName + "\" password=\"" + pw + "\";";
+        return loginModule + " required username=\"" + userName + "\" password=\"" + pw + "\";";
     }
 
 }

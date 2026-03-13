@@ -90,10 +90,11 @@ public class KafkaAdminUtil {
         Map<String, KafkaFuture<Void>> values = result.values();
         values.forEach((name, future) ->{
             future.whenComplete((action, throwable) ->{
-                if (throwable != null) {
+                if (throwable == null) {
+                    System.out.println("createTopicSuccess,topic=" + topicName);
+                } else {
                     throwable.printStackTrace();
                 }
-                System.out.println("createTopicSuccess,topic=" + topicName);
                 atomicBoolean.set(true);
                 countDownLatch.countDown();
             });

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--30 seconds  scan="true" scanPeriod="1 minutes" -->
+<configuration>
+    <property name="LOG_HOME" value="../logs"/>
+
+    <appender name="stdot" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%d{HH:mm:ss} [%thread] %level %logger.%M\(%L\):%m%n</pattern>
+        </layout>
+    </appender>
+
+    <appender name="kafka" class="com.hzk.mq.rocketmq.log.KafkaAppender1">
+        <topic>feature_dev-log</topic>
+        <brokerList>127.0.0.1:9092</brokerList>
+        <compressionType>none</compressionType>
+        <syncSend>false</syncSend>
+        <keySerializerClass>org.apache.kafka.common.serialization.StringSerializer</keySerializerClass>
+        <valueSerializerClass>org.apache.kafka.common.serialization.StringSerializer</valueSerializerClass>
+    </appender>
+
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>log.%d{yyyy-MM-dd}(%i).log</FileNamePattern>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            <maxHistory>5</maxHistory>
+            <TimeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <MaxFileSize>10MB</MaxFileSize>
+            </TimeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <charset>utf-8</charset>
+            <pattern>%d{HH:mm:ss} [%thread] %level %logger.%M\(%L\):%m%n</pattern>
+        </encoder>
+        <append>false</append>
+        <prudent>false</prudent>
+    </appender>
+
+    <logger name="org.apache" additivity="false" level="ERROR">
+        <appender-ref ref="stdot" />
+    </logger>
+
+    <logger name="kd.bos.XXX"  level="OFF">
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="kafka" />
+<!--        <appender-ref ref="stdot" />-->
+    </root>
+
+
+
+</configuration>

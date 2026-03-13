@@ -38,7 +38,7 @@ public class RabbitMQPullConsumerTest {
 
         // 消费者
         Channel channel = connection.createChannel();
-        channel.basicQos(100);
+        channel.basicQos(1);
         while (channel.isOpen()) {
             GetResponse response = channel.basicGet(queueName, false);
             if(response == null){

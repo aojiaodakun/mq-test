@@ -9,19 +9,34 @@ import com.hzk.mq.rocketmq.util.RocketMQAdminExtUtil;
 import com.hzk.mq.rocketmq.util.RocketMQTopicUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.common.TopicConfig;
-import org.apache.rocketmq.common.admin.ConsumeStats;
-import org.apache.rocketmq.common.admin.TopicStatsTable;
 import org.apache.rocketmq.common.message.MessageQueue;
-import org.apache.rocketmq.common.protocol.body.Connection;
-import org.apache.rocketmq.common.protocol.body.ConsumerConnection;
-import org.apache.rocketmq.common.protocol.body.ConsumerRunningInfo;
-import org.apache.rocketmq.common.protocol.body.GroupList;
-import org.apache.rocketmq.common.protocol.body.KVTable;
-import org.apache.rocketmq.common.protocol.body.SubscriptionGroupWrapper;
-import org.apache.rocketmq.common.protocol.body.TopicList;
-import org.apache.rocketmq.common.protocol.route.BrokerData;
-import org.apache.rocketmq.common.protocol.route.TopicRouteData;
-import org.apache.rocketmq.common.subscription.SubscriptionGroupConfig;
+//import org.apache.rocketmq.common.admin.ConsumeStats;
+//import org.apache.rocketmq.common.admin.TopicStatsTable;
+//import org.apache.rocketmq.common.protocol.body.Connection;
+//import org.apache.rocketmq.common.protocol.body.ConsumerConnection;
+//import org.apache.rocketmq.common.protocol.body.ConsumerRunningInfo;
+//import org.apache.rocketmq.common.protocol.body.GroupList;
+//import org.apache.rocketmq.common.protocol.body.KVTable;
+//import org.apache.rocketmq.common.protocol.body.SubscriptionGroupWrapper;
+//import org.apache.rocketmq.common.protocol.body.TopicList;
+//import org.apache.rocketmq.common.protocol.route.BrokerData;
+//import org.apache.rocketmq.common.protocol.route.TopicRouteData;
+//import org.apache.rocketmq.common.subscription.SubscriptionGroupConfig;
+
+import org.apache.rocketmq.remoting.protocol.admin.ConsumeStats;
+import org.apache.rocketmq.remoting.protocol.admin.TopicStatsTable;
+import org.apache.rocketmq.remoting.protocol.body.Connection;
+import org.apache.rocketmq.remoting.protocol.body.ConsumerConnection;
+import org.apache.rocketmq.remoting.protocol.body.ConsumerRunningInfo;
+import org.apache.rocketmq.remoting.protocol.body.GroupList;
+import org.apache.rocketmq.remoting.protocol.body.KVTable;
+import org.apache.rocketmq.remoting.protocol.body.SubscriptionGroupWrapper;
+import org.apache.rocketmq.remoting.protocol.body.TopicList;
+import org.apache.rocketmq.remoting.protocol.route.BrokerData;
+import org.apache.rocketmq.remoting.protocol.route.TopicRouteData;
+import org.apache.rocketmq.remoting.protocol.subscription.SubscriptionGroupConfig;
+
+
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 
 import java.util.Collections;

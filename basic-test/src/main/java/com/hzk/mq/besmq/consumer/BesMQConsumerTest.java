@@ -2,6 +2,7 @@ package com.hzk.mq.besmq.consumer;
 
 import com.bes.mq.BESMQConnectionFactory;
 import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
 import javax.jms.MessageConsumer;
 import javax.jms.Queue;
 import javax.jms.Session;
@@ -9,7 +10,7 @@ import javax.jms.TextMessage;
 
 public class BesMQConsumerTest {
 
-    private BESMQConnectionFactory factory;
+    private ConnectionFactory connectionFactory;
     private Connection connection;
     private Session session;
     private MessageConsumer consumer;
@@ -37,8 +38,8 @@ public class BesMQConsumerTest {
 
     public void execute() {
         try {
-            factory = new BESMQConnectionFactory(username, password, "tcp://" + host + ":" + port);
-            connection = factory.createConnection();
+            connectionFactory = new BESMQConnectionFactory(username, password, "tcp://" + host + ":" + port);
+            connection = connectionFactory.createConnection();
             connection.start();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
             Queue queue = session.createQueue(queueName);

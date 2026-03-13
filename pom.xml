@@ -15,12 +15,25 @@
 
     <properties>
         <junit.version>4.12</junit.version>
-        <kafka.version>3.1.0</kafka.version>
-        <rocketmq.version>4.9.3</rocketmq.version>
-        <rabbitmq.version>5.0.0</rabbitmq.version>
+        <logback.version>1.2.13</logback.version>
+        <slf4j.version>1.7.30</slf4j.version>
+        <fastjson.version>1.2.83</fastjson.version>
+        <kafka.version>3.9.1</kafka.version>
+        <rocketmq.version>5.3.0</rocketmq.version>
+        <rocketmq-client-java.version>5.0.7</rocketmq-client-java.version>
+        <rabbitmq.version>5.18.0</rabbitmq.version>
         <activemq.version>5.16.0</activemq.version>
         <commons-io-version>2.6</commons-io-version>
+        <commons-lang-version>3.12.0</commons-lang-version>
+        <commons-validator>1.7</commons-validator>
+        <commons-collections>3.2.2</commons-collections>
         <guava-version>29.0-jre</guava-version>
+        <spring.boot.version>2.2.2.RELEASE</spring.boot.version>
+        <swagger.version>2.9.2</swagger.version>
+        <boot.rabbitmq.version>2.5.0</boot.rabbitmq.version>
+        <boot.rocketmq.version>2.2.1</boot.rocketmq.version>
+        <opentelemetry.version>1.29.0</opentelemetry.version>
+        <opentelemetry.alpha.version>1.29.0-alpha</opentelemetry.alpha.version>
     </properties>
 
     <dependencyManagement>
@@ -30,6 +43,13 @@
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
             </dependency>
+            <!-- activemq start -->
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-all</artifactId>
+                <version>${activemq.version}</version>
+            </dependency>
+            <!-- activemq end -->
 
             <!-- kafka start -->
             <dependency>
@@ -50,6 +70,7 @@
                 <artifactId>rocketmq-client</artifactId>
                 <version>${rocketmq.version}</version>
             </dependency>
+            <!-- rocketmq 5.3.0特有-->
             <dependency>
                 <groupId>org.apache.rocketmq</groupId>
                 <artifactId>rocketmq-common</artifactId>
@@ -60,21 +81,138 @@
                 <artifactId>rocketmq-tools</artifactId>
                 <version>${rocketmq.version}</version>
             </dependency>
-            <!-- rocketmq end -->
-
-            <!-- activemq start -->
             <dependency>
-                <groupId>org.apache.activemq</groupId>
-                <artifactId>activemq-all</artifactId>
-                <version>${activemq.version}</version>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>${boot.rocketmq.version}</version>
             </dependency>
-            <!-- activemq end -->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-proto</artifactId>
+                <version>2.0.3</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.aliyunmq</groupId>
+                <artifactId>rocketmq-slf4j-api</artifactId>
+                <version>1.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.aliyunmq</groupId>
+                <artifactId>rocketmq-logback-classic</artifactId>
+                <version>1.0.1</version>
+            </dependency>
+
+            <!-- rocketmq5版本客户端 -->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-client-java</artifactId>
+                <version>${rocketmq-client-java.version}</version>
+            </dependency>
+
+
+
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-api</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-api-events</artifactId>
+                <version>${opentelemetry.alpha.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-context</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-exporter-common</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-exporter-logging</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-exporter-logging-otlp</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-exporter-otlp</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-exporter-otlp-common</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-exporter-prometheus</artifactId>
+                <version>${opentelemetry.alpha.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-exporter-sender-okhttp</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-extension-incubator</artifactId>
+                <version>${opentelemetry.alpha.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-sdk</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-sdk-common</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-sdk-extension-autoconfigure-spi</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-sdk-logs</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-sdk-metrics</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-sdk-trace</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-semconv</artifactId>
+                <version>${opentelemetry.alpha.version}</version>
+            </dependency>
+            <!-- rocketmq end -->
 
             <!-- rabbitmq start -->
             <dependency>
                 <groupId>com.rabbitmq</groupId>
                 <artifactId>amqp-client</artifactId>
                 <version>${rabbitmq.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-amqp</artifactId>
+                <version>${boot.rabbitmq.version}</version>
             </dependency>
             <!-- rabbitmq end -->
 
@@ -83,7 +221,21 @@
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io-version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>commons-collections</groupId>
+                <artifactId>commons-collections</artifactId>
+                <version>${commons-collections}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-validator</groupId>
+                <artifactId>commons-validator</artifactId>
+                <version>${commons-validator}</version>
+            </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
@@ -92,8 +244,23 @@
 
             <dependency>
                 <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-amqp</artifactId>
-                <version>2.5.0</version>
+                <artifactId>spring-boot-starter-web</artifactId>
+                <version>${spring.boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring.boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-swagger-ui</artifactId>
+                <version>${swagger.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-swagger2</artifactId>
+                <version>${swagger.version}</version>
             </dependency>
 
             <dependency>
@@ -101,6 +268,27 @@
                 <artifactId>commons-pool2</artifactId>
                 <version>2.11.1</version>
             </dependency>
+            <dependency>
+                <groupId>com.caucho</groupId>
+                <artifactId>hessian</artifactId>
+                <version>4.0.62</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+
 
         </dependencies>
     </dependencyManagement>

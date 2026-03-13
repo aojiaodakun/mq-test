@@ -1,7 +1,10 @@
 package com.hzk.mq.rocketmq.util;
 
+import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.common.TopicConfig;
-import org.apache.rocketmq.common.subscription.SubscriptionGroupConfig;
+//import org.apache.rocketmq.common.subscription.SubscriptionGroupConfig;
+import org.apache.rocketmq.remoting.protocol.ResponseCode;
+import org.apache.rocketmq.remoting.protocol.subscription.SubscriptionGroupConfig;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.rocketmq.tools.admin.MQAdminExt;
 import org.apache.rocketmq.tools.command.CommandUtil;
@@ -32,19 +35,34 @@ public class RocketMQTopicUtil {
         DefaultMQAdminExt mqAdminExt = RocketMQAdminExtUtil.getMQAdminExt();
         try {
             String clusterName = "DefaultCluster";
-
-
 //            mqAdminExt.createTopic(clusterName, topic, queueNums);
-
             Set<String> masterSet = getMasterAddrSet(mqAdminExt, clusterName);
             for (String address : masterSet) {
                 // 判断topic是否存在
-                TopicConfig topicConfig = mqAdminExt.examineTopicConfig(address, topic);
-                if (topicConfig == null) {
-                    topicConfig = new TopicConfig(topic);
-                    topicConfig.setReadQueueNums(queueNums);
-                    topicConfig.setWriteQueueNums(queueNums);
-                    mqAdminExt.createAndUpdateTopicConfig(address, topicConfig);
+                try {
+                    /**
+                     * TODO
+                     * 4版本，返回TopicConfig
+                     * 5版本，抛异常
+                     */
+                    TopicConfig topicConfig = mqAdminExt.examineTopicConfig(address, topic);
+                    if (topicConfig == null) {
+                        topicConfig = new TopicConfig(topic);
+                        topicConfig.setReadQueueNums(queueNums);
+                        topicConfig.setWriteQueueNums(queueNums);
+                        mqAdminExt.createAndUpdateTopicConfig(address, topicConfig);
+                    }
+                } catch (Exception e) {
+                    // 5版本
+                    if (e instanceof MQBrokerException) {
+                        MQBrokerException mqBrokerException = (MQBrokerException)e;
+                        if (mqBrokerException.getResponseCode() == ResponseCode.TOPIC_NOT_EXIST) {
+                            TopicConfig topicConfig = new TopicConfig(topic);
+                            topicConfig.setReadQueueNums(queueNums);
+                            topicConfig.setWriteQueueNums(queueNums);
+                            mqAdminExt.createAndUpdateTopicConfig(address, topicConfig);
+                        }
+                    }
                 }
             }
             return true;
@@ -74,6 +92,28 @@ public class RocketMQTopicUtil {
                     subscriptionGroupConfig.setGroupName(groupName);
                     mqAdminExt.createAndUpdateSubscriptionGroupConfig(address, subscriptionGroupConfig);
                 }
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    /**
+     * 在每个masterIP下创建订阅组
+     *
+     * @param groupName groupName
+     * @return 布尔值
+     */
+    public static boolean deleteSubscriptionGroup(String groupName) {
+        try {
+            DefaultMQAdminExt mqAdminExt = RocketMQAdminExtUtil.getMQAdminExt();
+            String clusterName = "DefaultCluster";
+            Set<String> masterSet = getMasterAddrSet(mqAdminExt, clusterName);
+            for (String address : masterSet) {
+                // 删除订阅组
+                mqAdminExt.deleteSubscriptionGroup(address, groupName);
             }
             return true;
         } catch (Exception e) {

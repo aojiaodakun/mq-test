@@ -1,4 +1,4 @@
-package com.hzk;
+package com.hzk.boot;
 
 
 import com.rabbitmq.client.Channel;
@@ -24,11 +24,16 @@ import java.security.cert.CertificateException;
 import java.util.Objects;
 
 /**
- * type=rabbitmq
- * host=172.17.8.198
- * port=5671
+ * host=127.0.0.1
+ * port=5672
+ * vhost=/
+ * queue=demo.test_queue
  * user=rabbitmq-client
- * vhost=perf-reliability
+ * password=rabbitmq-client
+ * 全部参数
+ * host=127.0.0.1 port=5672 vhost=/ queue=test_queue user=rabbitmq-client password=rabbitmq-client
+ *
+ * ---SSL---
  * ssl.enable=true
  * certificate.enable=true
  * ssl.certificate.clientPath=/tmp/nfssharedata/rabbitmq/ssl/rabbitmq-client.keycert.p12
@@ -36,16 +41,13 @@ import java.util.Objects;
  * ssl.certificate.keyPassword=Kingdee#123
  * ssl.certificate.trustPassword=Kingdee#123
  * auth.mechanism=EXTERNAL
- * queue=demo.demo_queue
+ * 全部参数
+ * host=127.0.0.1 port=5672 vhost=/ queue=test_queue user=rabbitmq-client ssl.enable=true certificate.enable=true ssl.certificate.clientPath=/tmp/nfssharedata/rabbitmq/ssl/rabbitmq-client.keycert.p12 ssl.certificate.trustPath=/tmp/nfssharedata/rabbitmq/ssl/trustStore ssl.certificate.keyPassword=Kingdee#123 ssl.certificate.trustPassword=Kingdee#123 auth.mechanism=EXTERNAL
  */
 public class RabbitMQApplicationMain {
 
 
     public static void main(String[] args) throws Exception{
-        byte[] bytes = new byte[]{101,110,95,85,83};
-        String s = new String(bytes);
-        LongString longString = LongStringHelper.asLongString(bytes);
-
         for (int i = 0; i < args.length; i++) {
             String[] tempArr = args[i].split("=");
             System.setProperty(tempArr[0], tempArr[1]);
